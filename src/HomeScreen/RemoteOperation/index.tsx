@@ -1,7 +1,7 @@
 import {
   Button,
   Dimensions,
-  Image, ImageBackground, Modal,
+  Image, ImageBackground, Keyboard, Modal,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -19,7 +19,7 @@ import FloatingButton from "../Components/FloatingButton";
 import { header } from "../index";
 import SuperModal from "../Components/SuperModal";
 import Clipboard from '@react-native-clipboard/clipboard';
-
+// import Voice from '@react-native-community/voice';
 
 
 // @ts-ignore
@@ -97,17 +97,37 @@ export function RemoteOperationPage({ route, navigation }) {
     navigation.setOptions({ header, headerTitle, headerRight, headerTransparent:true, bottom:false, headerStyle: {backgroundColor: 'rgba(0, 0, 0, 0.40)'} });
   }, [isMenuVisible]);
 
-  //const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const [isAIOpen, setIsAIOpen] = useState(false);
   const [isVoiceBoardOpen, setIsVoiceBoardOpen] = useState(false);
   const [isVoiceInput, setIsVoiceInput] = useState(false);
 
   const [isSizeModalVisible,setIsSizeModalVisible] = useState(false)
 
+  // 初始化Voice
+  // Voice.onSpeechStart = () => {
+  //   console.log('语音识别已启动');
+  // };
+  //
+  // Voice.onSpeechEnd = () => {
+  //   console.log('语音识别已结束');
+  // };
+  //
+  // Voice.onSpeechResults = (e) => {
+  //   console.log('语音识别结果：', e.value);
+  // };
+  const textInputRef = useRef(null);
 
   const handleKeyboardButtonPress = () => {
-    //setIsKeyboardVisible(!isKeyboardVisible);
-    //点击键盘时触发输入框聚焦或失焦，进而唤起键盘
+    if (!isKeyboardVisible && textInputRef.current) {
+      textInputRef.current.focus();
+      setIsKeyboardVisible(true);
+    }else if(isKeyboardVisible && textInputRef.current) {
+      Keyboard.dismiss();
+      setIsKeyboardVisible(false);
+    }
+    //TODO：其他情况下唤起键盘做什么？
+
   };
   const handleOpenAI = () => {
     // console.log("openAI");
@@ -122,17 +142,18 @@ export function RemoteOperationPage({ route, navigation }) {
   const handleVoiceInput = () => {
     setIsVoiceInput(true);
     //TODO: 接收语音输入
-    // react-native-voice
+    // Voice.start('en-CN')
   };
 
   const handleVoiceCancel = () => {
     setIsVoiceInput(false);
+    // Voice.stop()
   };
 
   const handleVoiceOK = () => {
     setIsVoiceInput(false);
     //TODO: 处理语音输入
-    // react-native-voice
+    // Voice.stop()
   };
 
   const handleSend = () => {
@@ -159,9 +180,23 @@ export function RemoteOperationPage({ route, navigation }) {
     "Last failed login: Tue Jul 25 14:11:59 CST 2023 from 82.207.9.226 on ssh;notty\n" +
     "There were 1268 failed login attempts since the last successful login.\n" +
     "Last login: Mon Jul 24 18:54:40 2023 from 112.96.196.30root@VM-0-16-centos ~]#",
+    "Last failed login: Tue Jul 25 14:11:59 CST 2023 from 82.207.9.226 on ssh;notty\n" +
+    "There were 1268 failed login attempts since the last successful login.\n" +
+    "Last login: Mon Jul 24 18:54:40 2023 from 112.96.196.30root@VM-0-16-centos ~]#",
+    "Last failed login: Tue Jul 25 14:11:59 CST 2023 from 82.207.9.226 on ssh;notty\n" +
+    "There were 1268 failed login attempts since the last successful login.\n" +
+    "Last login: Mon Jul 24 18:54:40 2023 from 112.96.196.30root@VM-0-16-centos ~]#",
+    "Last failed login: Tue Jul 25 14:11:59 CST 2023 from 82.207.9.226 on ssh;notty\n" +
+    "There were 1268 failed login attempts since the last successful login.\n" +
+    "Last login: Mon Jul 24 18:54:40 2023 from 112.96.196.30root@VM-0-16-centos ~]#",
+    "Last failed login: Tue Jul 25 14:11:59 CST 2023 from 82.207.9.226 on ssh;notty\n" +
+    "There were 1268 failed login attempts since the last successful login.\n" +
+    "Last login: Mon Jul 24 18:54:40 2023 from 112.96.196.30root@VM-0-16-centos ~]#",
   ])
 
   const [input, onChangeInput] = useState('')
+
+
 
 
   return (
@@ -210,7 +245,7 @@ export function RemoteOperationPage({ route, navigation }) {
                       <TouchableOpacity onPress={handleToVoice}>
                         <Image source={require("../../../assets/keyboard.png")} style={{ width: 20, height: 20 }} />
                       </TouchableOpacity>
-                      <TouchableOpacity style={styles.input_new} onLongPress={handleVoiceInput}>
+                      <TouchableOpacity style={styles.input_new} onLongPress={handleVoiceInput} >
                         <Text style={{ lineHeight: 36, left: 8, }}>{"长按输入语音"}</Text>
                       </TouchableOpacity>
                     </View>
@@ -226,7 +261,7 @@ export function RemoteOperationPage({ route, navigation }) {
                   </TouchableOpacity>
                   <TextInput
                     style={styles.input_new}
-                    //TODO:将input的输入发送添加到上面的text中
+                    ref={textInputRef}
                     onChangeText={(text)=>{onChangeInput(text)}}
                     value={input}
                     placeholder={"请输入内容..."}

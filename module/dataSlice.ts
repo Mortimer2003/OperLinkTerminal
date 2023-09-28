@@ -1,4 +1,4 @@
-import { HostType, KeyType, SettingType } from "./types";
+import { HostType, KeyType, SettingType, UserType } from "./types";
 
 export const defaultKeySlice: Array<KeyType> = [
   {
@@ -171,3 +171,10 @@ export const defaultSettingSlice: SettingType = {
   keepConnect_connect: true,
   functionKey_keyboard: false
 };
+
+export const defaultUserSlice: UserType = {
+  username: '无风yu',
+  password: 'myx030912',
+  phone: '156 6558 0881',
+  avatar: '',
+}

@@ -8,7 +8,7 @@
 
 import * as React from "react";
 import { AppRegistry, TouchableOpacity } from "react-native";
-import { NavigationContainer } from "@react-navigation/native";
+import { NavigationContainer, Route } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 //import { createStackNavigator } from '@react-navigation/stack';
 import axios from "axios";
@@ -18,20 +18,18 @@ import {
   Text,
   useColorScheme,
   View,
-  Image,
+  Image
 } from "react-native";
 import {
-  Colors,
+  Colors
 } from "react-native/Libraries/NewAppScreen";
 import { HomeScreen } from "./src/HomeScreen";
 import { name as appName } from "./app.json";
 import SplashScreen from "./src/SplashScreen";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useEffect, useState } from "react";
-import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
+import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
 // import { SvgXml } from "react-native-svg";
-
-
 
 
 const TestScreen = () => {
@@ -56,7 +54,7 @@ function App() {
           component={SplashScreen}
           options={{ headerShown: false }} // 隐藏导航栏
         />
-        <Main.Screen name="Main" component={MainScreen} options={{ headerShown: false }}/>
+        <Main.Screen name="Main" component={MainScreen} options={{ headerShown: false }} />
         {/* 添加其他屏幕 */}
       </Main.Navigator>
     </NavigationContainer>
@@ -64,16 +62,17 @@ function App() {
 }
 
 const tabBarIcons = {
-  "远程连接": require('./assets/connect.png'),
-  "智能交互": require('./assets/ai.png'),
-  "我的": require('./assets/user.png'),
-}
+  "远程连接": require("./assets/connect.png"),
+  "智能交互": require("./assets/ai.png"),
+  "我的": require("./assets/user.png")
+};
 const tabBarIcons_light = {
-  "远程连接": require('./assets/connect_light.png'),
-  "智能交互": require('./assets/ai_light.png'),
-  "我的": require('./assets/user_light.png'),
-}
+  "远程连接": require("./assets/connect_light.png"),
+  "智能交互": require("./assets/ai_light.png"),
+  "我的": require("./assets/user_light.png")
+};
 
+// @ts-ignore
 function CustomTabBar({ state, descriptors, navigation }) {
   // if (!tabBarVisible) {
   //   return null;
@@ -91,16 +90,16 @@ function CustomTabBar({ state, descriptors, navigation }) {
   //console.log({ tabBarVisible })
 
   return (
-    <View style={[styles.tabBarContainer,{ display:tabBarVisible ? 'flex' : 'none' }]}>
+    <View style={[styles.tabBarContainer, { display: tabBarVisible ? "flex" : "none" }]}>
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
         const isFocused = state.index === index;
 
         const onPress = () => {
           const event = navigation.emit({
-            type: 'tabPress',
+            type: "tabPress",
             target: route.key,
-            canPreventDefault: true,
+            canPreventDefault: true
           });
 
           if (!isFocused && !event.defaultPrevented) {
@@ -112,9 +111,9 @@ function CustomTabBar({ state, descriptors, navigation }) {
           <TouchableOpacity
             key={route.key}
             onPress={onPress}
-            style={[styles.tabBarButton, { backgroundColor: '#5E5B58'}]}
+            style={[styles.tabBarButton, { backgroundColor: "#5E5B58" }]}
           >
-            <Image style={styles.icon} source={isFocused?tabBarIcons_light[route.name]:tabBarIcons[route.name]}/>
+            <Image style={styles.icon} source={isFocused ? tabBarIcons_light[route.name] : tabBarIcons[route.name]} />
           </TouchableOpacity>
         );
       })}
@@ -123,8 +122,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
 }
 
 
-
-function getStackNavigationName(route) {
+function getStackNavigationName(route: Partial<Route<string, object | undefined>>) {
   const routeName = getFocusedRouteNameFromRoute(route) ?? 'RemoteConnection';
 
   switch (routeName) {

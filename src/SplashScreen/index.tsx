@@ -1,18 +1,21 @@
 // SplashScreen.js
 import React, { useEffect } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet, Image } from "react-native";
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from "@react-navigation/native";
 import App from '../../App';
 
 const SplashScreen = ({ navigation }) => {
   //const navigation = useNavigation();
+
+  const isFocused = useIsFocused();
 
   useEffect(() => {
     // 模拟加载，您可以在此处执行初始化操作
     setTimeout(() => {
       navigation.navigate('Main'); // 导航到主屏幕
     }, 1000); // 设置加载页显示时间，单位为毫秒
-  }, [navigation]);
+
+  }, [navigation,isFocused]);
 
   return (
     <View style={styles.container}>

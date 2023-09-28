@@ -137,8 +137,6 @@ export function RemoteConnectionPage({ route,navigation }) {
   const [selected, setSelected] = React.useState({ item: none, index: null });
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 ,over: false});
 
-  const screenHeight = Dimensions.get("window").height;
-
   const toggleHostMenu = (event: GestureResponderEvent, item: any, index: any) => {
     setSelected({ item, index });
     const { pageX, pageY } = event.nativeEvent;

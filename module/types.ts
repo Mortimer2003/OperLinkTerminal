@@ -1,3 +1,11 @@
+export type UserType = {
+  username: string,
+  password: string,
+  phone: string,
+  avatar: string,
+
+}
+
 export type SettingType = {
   recordKey_connect: boolean,
   keepConnect_connect: boolean,

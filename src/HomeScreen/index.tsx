@@ -19,24 +19,27 @@ import {
   View
 } from "react-native";
 import { Colors } from "react-native/Libraries/NewAppScreen";
-import { HostType, SettingType, KeyType } from "../../module/types";
-import { defaultHostSlice, defaultKeySlice, defaultSettingSlice } from "../../module/dataSlice";
+import { HostType, SettingType, KeyType, UserType } from "../../module/types";
+import { defaultHostSlice, defaultKeySlice, defaultSettingSlice, defaultUserSlice } from "../../module/dataSlice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import storage from "../../module/storage";
 import { useIsFocused, useNavigationState, useRoute } from "@react-navigation/native";
 import { AssistancePage } from "./Assistance";
+import { Login } from "../SplashScreen/Login";
 
 const contexts={
   KeySlice: defaultKeySlice,
   HostSlice: defaultHostSlice,
   SettingSlice: defaultSettingSlice,
+  UserSlice: defaultUserSlice,
 }
 
 
 //考虑到可修改性，直接传引用值而非拷贝值
-export const KeyContext = createContext(defaultKeySlice);
-export const HostContext = createContext(defaultHostSlice);
-export const SettingContext = createContext(defaultSettingSlice);
+export const KeyContext = createContext({/*defaultKeySlice*/ });
+export const HostContext = createContext({/*defaultHostSlice*/ });
+export const SettingContext = createContext({/*defaultSettingSlice*/ });
+export const UserContext = createContext({/*defaultUserSlice*/ });
 
 export function loadData(key:string,setData:Function) {
   storage.load({
@@ -52,6 +55,7 @@ export function loadData(key:string,setData:Function) {
 
       storage.save({
         key: key,
+        // @ts-ignore
         data: contexts[key],
       });
     });
@@ -79,30 +83,38 @@ export function HomeScreen({ route,navigation }) {
   const [keySlice, setKeySlice] = useState<KeyType[]>(defaultKeySlice);
   const [hostSlice, setHostSlice] = useState<HostType[]>(defaultHostSlice);
   const [settingSlice, setSettingSlice] = useState<SettingType>(defaultSettingSlice);
+  const [userSlice, setUserSlice] = useState<UserType>(defaultUserSlice);
 
   useEffect(() => {
+    if(userSlice===defaultUserSlice) navigation.navigate('Login');
     // 在组件挂载时从 AsyncStorage 获取数据
     loadData('KeySlice',setKeySlice)
     loadData('HostSlice',setHostSlice)
     loadData('SettingSlice',setSettingSlice)
+    loadData('UserSlice',setUserSlice)
   }, []);
 
 
-  return <SettingContext.Provider value={{ settingSlice, setSettingSlice }}>
-    <KeyContext.Provider value={{ keySlice, setKeySlice }}>
-      <HostContext.Provider value={{ hostSlice, setHostSlice }}>
-        <Stack.Navigator initialRouteName={"RemoteConnection"}>
-          <Stack.Screen name="RemoteConnection" component={RemoteConnectionPage} />
-          <Stack.Screen name="NewConnection" component={NewConnectionPage} />
-          <Stack.Screen name="RemoteOperation" component={RemoteOperationPage} />
-          <Stack.Screen name="ManageKeys" component={ManageKeysPage} />
-          <Stack.Screen name="GenerateKey" component={GenerateKeyPage} />
-          <Stack.Screen name="Settings" component={SettingsPage} />
-          <Stack.Screen name="Assistance" component={AssistancePage} />
-        </Stack.Navigator>
-      </HostContext.Provider>
-    </KeyContext.Provider>
-  </SettingContext.Provider>;
+  return <UserContext.Provider value={{ userSlice, setUserSlice }}>
+    <SettingContext.Provider value={{ settingSlice, setSettingSlice }}>
+      <KeyContext.Provider value={{ keySlice, setKeySlice }}>
+        <HostContext.Provider value={{ hostSlice, setHostSlice }}>
+          <Stack.Navigator initialRouteName={"RemoteConnection"}>
+            <Stack.Screen name="RemoteConnection" component={RemoteConnectionPage} />
+            <Stack.Screen name="NewConnection" component={NewConnectionPage} />
+            <Stack.Screen name="RemoteOperation" component={RemoteOperationPage} />
+            <Stack.Screen name="ManageKeys" component={ManageKeysPage} />
+            <Stack.Screen name="GenerateKey" component={GenerateKeyPage} />
+            <Stack.Screen name="Settings" component={SettingsPage} />
+            <Stack.Screen name="Assistance" component={AssistancePage} />
+
+            <Stack.Screen name="Login" component={Login} options={{headerShown: false}}/>
+
+          </Stack.Navigator>
+        </HostContext.Provider>
+      </KeyContext.Provider>
+    </SettingContext.Provider>
+  </UserContext.Provider>
 }
 
 // @ts-ignore
@@ -168,8 +180,8 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     flex: 1,
-
     margin: 5,
+    // fontSize: 17,
   },
   leftButton: {
     position: "absolute",
