@@ -12,7 +12,8 @@ import {
 import * as React from "react";
 import { useContext, useEffect, useLayoutEffect, useState } from "react";
 import { Colors } from "react-native/Libraries/NewAppScreen";
-import { header, saveData, SettingContext } from "../index";
+import { saveData, SettingContext } from "../../../../App";
+import { header } from "../index";
 
 // @ts-ignore
 export function AssistancePage({ navigation }) {
@@ -41,7 +42,7 @@ export function AssistancePage({ navigation }) {
       />
       <View /*contentInsetAdjustmentBehavior="automatic"*/ style={backgroundStyle}>
         <ImageBackground
-          source={require('../../../assets/background.png')} // 指定背景图片的路径
+          source={require('../../../../assets/background.png')} // 指定背景图片的路径
           style={{ flex: 1, resizeMode: 'cover'}}
         >
           <ScrollView style={styles.body}>

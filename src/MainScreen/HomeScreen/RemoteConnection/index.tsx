@@ -12,8 +12,8 @@ import {
 import * as React from "react";
 import { Colors } from "react-native/Libraries/NewAppScreen";
 import { useContext, useEffect, useLayoutEffect, useState } from "react";
-import { HostContext, KeyContext, saveData } from "../index";
-import { useRoute } from "@react-navigation/native";
+import { HostContext, KeyContext, saveData } from "../../../../App";
+import { useIsFocused, useRoute } from "@react-navigation/native";
 
 // @ts-ignore
 export function RemoteConnectionPage({ route,navigation }) {
@@ -89,7 +89,7 @@ export function RemoteConnectionPage({ route,navigation }) {
       <TouchableOpacity activeOpacity={0.5} onPress={toggleSettingMenu}>
         <Image
           style={styles.icon}
-          source={require("../../../assets/set.png")}
+          source={require("../../../../assets/set.png")}
         />
       </TouchableOpacity>
       <Modal
@@ -110,7 +110,7 @@ export function RemoteConnectionPage({ route,navigation }) {
   )
   const headerBackground = () => (
       <ImageBackground
-        source={require('../../../assets/head_background.png')} // 指定背景图片的路径
+        source={require('../../../../assets/head_background.png')} // 指定背景图片的路径
         style={{ flex: 1, resizeMode: 'cover' }}
       >
         {/* 在这里添加其他导航栏内容 */}
@@ -125,9 +125,20 @@ export function RemoteConnectionPage({ route,navigation }) {
   };
 
   //处理主页栏目点击时对相应主机进行远程连接（跳转到终端页面）
-  const handleConnect = (item) => {
-    //跳转到终端页面
-    navigation.navigate('RemoteOperation',{item})
+  const handleConnect = (item,index) => {
+    if(item.connecting){
+      //跳转到终端页面
+      navigation.navigate('RemoteOperation',{item,index})
+    } else {
+      //TODO:先验证再连接
+      const updatedHostList = hostSlice;
+      updatedHostList[index].connecting=true;
+      updatedHostList[index].texts=[(item.nickname||(item.username+item.host))+",测试用预置文本"]; //TODO:设置预置文本
+      setHostSlice(updatedHostList);
+      saveData('HostSlice',updatedHostList)
+      navigation.navigate('RemoteOperation',{item,index})
+    }
+
   };
 
   useLayoutEffect(()=>{
@@ -188,6 +199,60 @@ export function RemoteConnectionPage({ route,navigation }) {
     onChangeNicknameNew("");
   };
 
+  // useEffect(()=>{console.log(hostSlice)},[hostSlice])
+
+
+  const isFocused = useIsFocused();
+
+  useEffect(() => {
+    console.log("重新渲染") //用于在hostSlice更新时强制刷新
+  }, [hostSlice,/*navigation,isFocused,*/]);
+
+  function timeAgo(timestamp) {
+
+    // 定义时间单位的毫秒数
+    const minute = 60 * 1000;
+    const hour = minute * 60;
+    const day = hour * 24;
+    const week = day * 7;
+    const month = day * 30;
+    const year = day * 365;
+
+    if (timestamp < minute) {
+      return '刚刚';
+    } else if (timestamp < hour) {
+      const minutes = Math.floor(timestamp / minute);
+      return `${minutes} 分钟前`;
+    } else if (timestamp < day) {
+      const hours = Math.floor(timestamp / hour);
+      return `${hours} 小时前`;
+    } else if (timestamp < week) {
+      const days = Math.floor(timestamp / day);
+      return `${days} 天前`;
+    } else if (timestamp < month) {
+      const weeks = Math.floor(timestamp / week);
+      return `${weeks} 周前`;
+    } else if (timestamp < year) {
+      const months = Math.floor(timestamp / month);
+      return `${months} 个月前`;
+    } else {
+      const years = Math.floor(timestamp / year);
+      return `${years} 年前`;
+    }
+  }
+  const [timeNow, setTimeNow] = useState(Date.now())
+  useEffect(()=>{
+    console.log('设置定时器')
+    let clock = setInterval(()=>{
+      setTimeNow(Date.now())
+    }, 60*1000);
+
+    return ()=>{
+      console.log("注销定时器")
+      clearInterval(clock)
+    }
+  },[])
+
   return (
     <SafeAreaView style={backgroundStyle}>
 
@@ -199,13 +264,13 @@ export function RemoteConnectionPage({ route,navigation }) {
         <ScrollView style={styles.body}>
           <View style={{height: 10}}></View>
           {hostSlice.map((item, index) => {
-            let source = item.state
-              ? require("../../../assets/OK.png")
-              : require("../../../assets/ban.png");
+            let source = item.connecting
+              ? require("../../../../assets/OK.png")
+              : require("../../../../assets/ban.png");
             return (
               <TouchableOpacity
                 activeOpacity={0.5}
-                onPress={()=>handleConnect(item)}
+                onPress={()=>handleConnect(item,index)}
                 onLongPress={(event)=>toggleHostMenu(event,item, index)}
                 style={styles.hostItem}
                 key={index}
@@ -213,7 +278,8 @@ export function RemoteConnectionPage({ route,navigation }) {
                 <Image source={source} style={styles.icon_small} />
                 <View style={{ display: "flex", flexDirection: "column" }}>
                   <Text style={styles.text1}>{item.nickname || item.name.username+"@"+item.name.host}</Text>
-                  <Text style={styles.text2}>{item.time}</Text>
+                  {/*TODO: 是否会及时更新？*/}
+                  {timeNow && <Text style={styles.text2}>{item.time ? timeAgo(timeNow - item.time) : "——"}</Text>}
                 </View>
               </TouchableOpacity>
             );
@@ -278,7 +344,7 @@ export function RemoteConnectionPage({ route,navigation }) {
 
         </ScrollView>
         <TouchableOpacity style={styles.add} onPress={handleAdd}>
-          <Image source={require("../../../assets/add.png")} style={styles.icon_large} />
+          <Image source={require("../../../../assets/add.png")} style={styles.icon_large} />
         </TouchableOpacity>
 
       </View>

@@ -12,7 +12,8 @@ import {
 import * as React from "react";
 import { useContext, useEffect, useLayoutEffect, useState } from "react";
 import { Colors } from "react-native/Libraries/NewAppScreen";
-import { header, saveData, SettingContext } from "../index";
+import { header } from "../index";
+import { SettingContext, saveData } from "../../../../App";
 
 // @ts-ignore
 export function SettingsPage({ navigation }) {
@@ -71,7 +72,7 @@ export function SettingsPage({ navigation }) {
       />
       <View /*contentInsetAdjustmentBehavior="automatic"*/ style={backgroundStyle}>
         <ImageBackground
-          source={require('../../../assets/background.png')} // 指定背景图片的路径
+          source={require('../../../../assets/background.png')} // 指定背景图片的路径
           style={{ flex: 1, resizeMode: 'cover'}}
         >
         <ScrollView style={styles.body}>
@@ -87,7 +88,7 @@ export function SettingsPage({ navigation }) {
               <TouchableOpacity activeOpacity={0.9} style={styles.switchContainer}
                                 onPress={handleSet_connect_recordKey}>
                 <Image style={[styles.icon, { marginRight: 5 }]}
-                       source={recordKey_connect ? require("../../../assets/switch_on.png") : require("../../../assets/switch_off.png")}></Image>
+                       source={recordKey_connect ? require("../../../../assets/switch_on.png") : require("../../../../assets/switch_off.png")}></Image>
               </TouchableOpacity>
             </TouchableOpacity>
 
@@ -99,7 +100,7 @@ export function SettingsPage({ navigation }) {
               <TouchableOpacity activeOpacity={0.9} style={styles.switchContainer}
                                 onPress={handleSet_connect_keepConnect}>
                 <Image style={[styles.icon, { marginRight: 5 }]}
-                       source={keepConnect_connect ? require("../../../assets/switch_on.png") : require("../../../assets/switch_off.png")}></Image>
+                       source={keepConnect_connect ? require("../../../../assets/switch_on.png") : require("../../../../assets/switch_off.png")}></Image>
               </TouchableOpacity>
             </TouchableOpacity>
           </View>
@@ -115,7 +116,7 @@ export function SettingsPage({ navigation }) {
               <TouchableOpacity activeOpacity={0.9} style={styles.switchContainer}
                                 onPress={handleSet_keyboard_functionKey}>
                 <Image style={[styles.icon, { marginRight: 5 }]}
-                       source={functionKey_keyboard ? require("../../../assets/switch_on.png") : require("../../../assets/switch_off.png")}></Image>
+                       source={functionKey_keyboard ? require("../../../../assets/switch_on.png") : require("../../../../assets/switch_off.png")}></Image>
               </TouchableOpacity>
             </TouchableOpacity>
           </View>

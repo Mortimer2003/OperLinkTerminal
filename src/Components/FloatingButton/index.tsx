@@ -18,7 +18,7 @@ const FloatingButton = ({handlePress,size=50,top,bottom}:{handlePress:Function,s
       // else if(posX<(screenWidth-size)/2) posX=0;
       // else if(posX>(screenWidth-size)/2) posX=screenWidth-size;
       let posY = gestureState.moveY - size/2 /*-50*/;
-        if(posY<0)posY=-size/2;
+      if(posY<0)posY=-size/2;
 
       setPosition({
         x: posX,
@@ -56,13 +56,12 @@ const FloatingButton = ({handlePress,size=50,top,bottom}:{handlePress:Function,s
   });
 
   useEffect(()=>{
-    let posY = position.y;
-    if(bottom && posY>bottom-size)posY=bottom-size; //根据键盘弹出位置调整下界
-
-    setPosition({
-      x: position.x,
-      y: posY,
-    });
+    if(bottom && position.y>bottom-size) {
+      setPosition({
+        x: position.x,
+        y: bottom - size,
+      });
+    }
   },[bottom])
 
   return (
@@ -86,5 +85,4 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     opacity: 0.6,
   },
-
 });

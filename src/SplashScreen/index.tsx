@@ -1,30 +1,35 @@
 // SplashScreen.js
-import React, { useEffect } from 'react';
+import React, { useContext, useEffect, useLayoutEffect, useState } from "react";
 import { View, Text, ActivityIndicator, StyleSheet, Image } from "react-native";
-import { useIsFocused, useNavigation } from "@react-navigation/native";
-import App from '../../App';
+import { getFocusedRouteNameFromRoute, useIsFocused, useNavigation } from "@react-navigation/native";
+import App, { loadData, UserContext } from "../../App";
 
-const SplashScreen = ({ navigation }) => {
+const SplashScreen = ({ route, navigation }) => {
   //const navigation = useNavigation();
+  const { userSlice, setUserSlice } = useContext(UserContext);
+  const [loadingCompleted, setLoadingCompleted] = useState<boolean>(false);
 
   const isFocused = useIsFocused();
 
-  useEffect(() => {
-    // 模拟加载，您可以在此处执行初始化操作
-    setTimeout(() => {
-      navigation.navigate('Main'); // 导航到主屏幕
-    }, 1000); // 设置加载页显示时间，单位为毫秒
+  useLayoutEffect(() => {
+    // 在组件挂载时从 AsyncStorage 获取数据
+    loadData('UserSlice',setUserSlice,()=>{setLoadingCompleted(true)})
+  }, []);
 
-  }, [navigation,isFocused]);
+  useEffect(() => {
+    //console.log({ loadingCompleted },userSlice.isLogin)
+    if(loadingCompleted && isFocused){
+      setTimeout(() => {
+        navigation.navigate(userSlice.isLogin?'MainScreen':'LoginScreen');
+      }, 1000);
+    }
+
+  }, [loadingCompleted,navigation,isFocused,userSlice.isLogin]);
 
   return (
     <View style={styles.container}>
-      {/* 添加您的加载页内容，例如标志、动画、加载指示器等 */}
-      {/*<ActivityIndicator size="large" color="#007AFF" />*/}
       <Image style={{width: 393, height: 92}} source={require("../../assets/logo.png")} />
       <Text style={{color: '#787878', fontSize: 15, fontFamily: 'Montserrat Alternates', fontWeight: '700', /*wordWrap: 'break-word'*/}}>operation link</Text>
-
-
     </View>
   );
 };

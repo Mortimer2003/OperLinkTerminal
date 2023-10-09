@@ -30,8 +30,8 @@ export const defaultKeySlice: Array<KeyType> = [
 
 export const defaultHostSlice: Array<HostType> = [
   {
-    state: true,
-    time: "0分钟前",
+    connecting: true,
+    time: "1696428485712",
 
     protocol: "ssh",
     name: {
@@ -42,11 +42,13 @@ export const defaultHostSlice: Array<HostType> = [
     nickname: "主机1",
     color: "black",
     encode: "utf-8",
-    openShell: true
+    openShell: true,
+
+    texts:[]
   },
   {
-    state: false,
-    time: "3天前",
+    connecting: false,
+    time: "1696428000000",
 
     protocol: "ssh",
     name: {
@@ -57,113 +59,10 @@ export const defaultHostSlice: Array<HostType> = [
     nickname: "主机1",
     color: "black",
     encode: "utf-8",
-    openShell: false
-  },
-  {
-    state: false,
-    time: "3天前",
+    openShell: false,
 
-    protocol: "ssh",
-    name: {
-      username: "user",
-      host: "192.0.0.1",
-      port: "80"
-    },
-    nickname: "主机1",
-    color: "black",
-    encode: "utf-8",
-    openShell: false
+    texts:[]
   },
-  {
-    state: false,
-    time: "3天前",
-
-    protocol: "ssh",
-    name: {
-      username: "user",
-      host: "192.0.0.1",
-      port: "80"
-    },
-    nickname: "主机1",
-    color: "black",
-    encode: "utf-8",
-    openShell: false
-  },
-  {
-    state: false,
-    time: "3天前",
-
-    protocol: "ssh",
-    name: {
-      username: "user",
-      host: "192.0.0.1",
-      port: "80"
-    },
-    nickname: "主机1",
-    color: "black",
-    encode: "utf-8",
-    openShell: false
-  },
-  {
-    state: false,
-    time: "3天前",
-
-    protocol: "ssh",
-    name: {
-      username: "user",
-      host: "192.0.0.1",
-      port: "80"
-    },
-    nickname: "主机1",
-    color: "black",
-    encode: "utf-8",
-    openShell: false
-  },
-  {
-    state: false,
-    time: "3天前",
-
-    protocol: "ssh",
-    name: {
-      username: "user",
-      host: "192.0.0.1",
-      port: "80"
-    },
-    nickname: "主机1",
-    color: "black",
-    encode: "utf-8",
-    openShell: false
-  },
-  {
-    state: false,
-    time: "3天前",
-
-    protocol: "ssh",
-    name: {
-      username: "user",
-      host: "192.0.0.1",
-      port: "80"
-    },
-    nickname: "主机1",
-    color: "black",
-    encode: "utf-8",
-    openShell: false
-  },
-  {
-    state: false,
-    time: "3天前",
-
-    protocol: "ssh",
-    name: {
-      username: "user",
-      host: "192.0.0.1",
-      port: "80"
-    },
-    nickname: "主机1",
-    color: "black",
-    encode: "utf-8",
-    openShell: false
-  }
 ];
 
 export const defaultSettingSlice: SettingType = {
@@ -173,8 +72,9 @@ export const defaultSettingSlice: SettingType = {
 };
 
 export const defaultUserSlice: UserType = {
-  username: '无风yu',
-  password: 'myx030912',
-  phone: '156 6558 0881',
+  username: '游客',
+  password: '',
+  phone: '',
   avatar: '',
+  isLogin: false,
 }

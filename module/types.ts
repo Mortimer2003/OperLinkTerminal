@@ -3,7 +3,7 @@ export type UserType = {
   password: string,
   phone: string,
   avatar: string,
-
+  isLogin: boolean,
 }
 
 export type SettingType = {
@@ -26,7 +26,7 @@ export type KeyType = {
 }
 
 export type HostType = {
-  state: boolean,
+  connecting: boolean,
   time: string,
 
   protocol: string,
@@ -39,4 +39,6 @@ export type HostType = {
   color: string,
   encode: string,
   openShell: boolean,
+
+  texts: string[]
 }

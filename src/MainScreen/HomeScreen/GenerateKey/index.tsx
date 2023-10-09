@@ -1,5 +1,5 @@
 import {
-  Dimensions, Image, ImageBackground, Modal,
+  Dimensions, Image, ImageBackground, Keyboard, KeyboardAvoidingView, LayoutAnimation, Modal, Platform,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -9,7 +9,8 @@ import {
 import * as React from "react";
 import { Colors } from "react-native/Libraries/NewAppScreen";
 import { useContext, useEffect, useLayoutEffect, useState } from "react";
-import { header, KeyContext, saveData } from "../index";
+import { header } from "../index";
+import { KeyContext, saveData } from "../../../../App";
 import forge from "node-forge";
 
 
@@ -192,10 +193,37 @@ export function GenerateKeyPage({ navigation }) {
       value: passwordConfirm,
       onChangeValue: onChangePasswordConfirm,
       type: 'password',
-      tip: <Image style={[styles.judge,{opacity: passwordConfirm ? 1:0}]} source={password===passwordConfirm ? require("../../../assets/correct.png") : require("../../../assets/error.png")} />,
+      tip: <Image style={[styles.judge,{opacity: passwordConfirm ? 1:0}]} source={password===passwordConfirm ? require("../../../../assets/correct.png") : require("../../../../assets/error.png")} />,
       editable: true,
     },
   ]
+
+  //const ScreenHeight=Dimensions.get("window").height
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      () => {
+        LayoutAnimation.easeInEaseOut();
+        setIsKeyboardOpen(true);
+      }
+    );
+
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => {
+        LayoutAnimation.easeInEaseOut(); // 添加过渡效果
+        setIsKeyboardOpen(false);
+      }
+    );
+
+    // 返回一个清理函数以在组件卸载时取消监听
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
+  }, []);
 
   return (
     <SafeAreaView style={backgroundStyle}>
@@ -206,10 +234,11 @@ export function GenerateKeyPage({ navigation }) {
       />
       <View /*contentInsetAdjustmentBehavior="automatic"*/ style={backgroundStyle}>
         <ImageBackground
-          source={require('../../../assets/background.png')} // 指定背景图片的路径
+          source={require('../../../../assets/background.png')} // 指定背景图片的路径
           style={{ flex: 1, resizeMode: 'cover'}}
         >
-        <View style={styles.body}>
+        <ScrollView style={[styles.body,isKeyboardOpen?{marginBottom: 100}:{marginBottom: 180,}]}>
+          <View>
           {/*<View style={styles.container}>*/}
             {generateKeyInputItems.map((item,index)=>{
 
@@ -227,14 +256,14 @@ export function GenerateKeyPage({ navigation }) {
                               editable={item.editable}
                             />
                             <TouchableOpacity activeOpacity={0.5} onPress={toggleMenu} style={[styles.arrow,{right:-10}]}>
-                              <Image source={isMenuVisible?require('../../../assets/arrow_up.png'):require('../../../assets/arrow_down.png')} style={[styles.arrow]} />
+                              <Image source={isMenuVisible?require('../../../../assets/arrow_up.png'):require('../../../../assets/arrow_down.png')} style={[styles.arrow]} />
                             </TouchableOpacity>
                           </View>
-                          {isMenuVisible && types.map((it) =>
+                          {isMenuVisible && types.map((it,i) =>
                               <TouchableOpacity onPress={() => {
                                 item.onChangeValue(it);
                                 toggleMenu();
-                              }} style={[styles.chooseItem,{backgroundColor: item.value===it? 'rgba(255, 200, 138, 0.30)':''}]}>
+                              }} style={[styles.chooseItem,{backgroundColor: item.value===it? 'rgba(255, 200, 138, 0.30)':''}]} key={i}>
                                 <Text style={styles.chooseText}>{it}</Text>
                               </TouchableOpacity>
                             )
@@ -254,20 +283,23 @@ export function GenerateKeyPage({ navigation }) {
                   }
               </View>
             })}
+          </View>
 
-
-          <View style={{flexGrow: 1,justifyContent:'flex-end'}}>
+          {/*<View style={[{justifyContent:'flex-end'},isKeyboardOpen?{display: 'none'}:{}]}>*/}
             <TouchableOpacity
               activeOpacity={0.5}
               onPress={handleSave}
-              style={styles.button}
+              style={[styles.button,{marginVertical: 30}]}
             >
               <Text style={{ textAlign: "center", lineHeight: 50, color: '#FFC88B', fontSize: 24, fontFamily: 'Microsoft Tai Le', fontWeight: '700', }}>
                 生成
               </Text>
             </TouchableOpacity>
-          </View>
-        </View>
+
+          <View style={{height: 100}}></View>
+          {/*</View>*/}
+        </ScrollView>
+
         </ImageBackground>
       </View>
     </SafeAreaView>
@@ -288,7 +320,8 @@ const styles = StyleSheet.create({
   button: {
     marginLeft: "20%",
     marginRight: "20%",
-    marginTop: 10,
+    // marginTop: 10,
+    marginBottom: 10,
     width: "60%",
     height: 50,
 
@@ -302,7 +335,7 @@ const styles = StyleSheet.create({
     height: "auto",
     marginLeft: '5%',
     marginRight: '5%',
-    marginBottom: 180,
+    //marginBottom: 180,
     padding: 30,
     flex: 1,
     backgroundColor: 'rgba(90, 90, 90, 0.50)',
@@ -315,6 +348,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+    overflow: 'hidden',
+    // justifyContent: 'space-between',
   },
   name: {
     lineHeight: 60,

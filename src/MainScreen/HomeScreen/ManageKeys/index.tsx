@@ -1,7 +1,7 @@
 import {
   Dimensions,
   GestureResponderEvent,
-  Image, ImageBackground,
+  Image, ImageBackground, Keyboard, LayoutAnimation,
   Modal,
   SafeAreaView,
   ScrollView,
@@ -20,8 +20,9 @@ import { Colors } from "react-native/Libraries/NewAppScreen";
 import DocumentPicker from "react-native-document-picker";
 import Clipboard from "@react-native-clipboard/clipboard";
 
-import { header, KeyContext, saveData } from "../index";
-import SuperModal from "../Components/SuperModal";
+import { header } from "../index";
+import { KeyContext, saveData } from "../../../../App";
+import SuperModal from "../../../Components/SuperModal";
 
 const screenHeight = Dimensions.get("window").height;
 
@@ -86,10 +87,10 @@ export function ManageKeysPage({ navigation }) {
   const headerRight = () => (
     <View style={styles.headerButtonContainer}>
       <TouchableOpacity activeOpacity={0.5} onPress={handleAdd} style={[styles.headerButton,{borderRightWidth: 1,}]}>
-        <Image source={require("../../../assets/addKey.png")} style={styles.headerIcon} />
+        <Image source={require("../../../../assets/addKey.png")} style={styles.headerIcon} />
       </TouchableOpacity>
       <TouchableOpacity activeOpacity={0.5} onPress={handleUpload} style={[styles.headerButton,{borderLeftWidth: 1,}]}>
-        <Image source={require("../../../assets/folder.png")} style={styles.headerIcon} />
+        <Image source={require("../../../../assets/folder.png")} style={styles.headerIcon} />
       </TouchableOpacity>
     </View>
   );
@@ -247,15 +248,15 @@ export function ManageKeysPage({ navigation }) {
     console.log('删除')
   };
 
-  const lock_png=require("../../../assets/lock.png");
-  const unlock_png=require("../../../assets/unlock.png")
+  const lock_png=require("../../../../assets/lock.png");
+  const unlock_png=require("../../../../assets/unlock.png")
 
   const changePasswordInputItems=[
     {
       title: "旧密码",
       password: passwordOld,
       onChangePassword: onChangePasswordOld,
-      tip: <Image style={[styles.judge,{ opacity: passwordOld ? 1:0}]} source={selected.item.password===passwordOld ? require("../../../assets/correct.png") : require("../../../assets/error.png")} />
+      tip: <Image style={[styles.judge,{ opacity: passwordOld ? 1:0}]} source={selected.item.password===passwordOld ? require("../../../../assets/correct.png") : require("../../../../assets/error.png")} />
     },{
       title: "新密码",
       password: passwordNew,
@@ -265,7 +266,7 @@ export function ManageKeysPage({ navigation }) {
       title: "确认密码",
       password: passwordConfirm,
       onChangePassword: onChangePasswordConfirm,
-      tip: <Image style={[styles.judge,{opacity: passwordConfirm ? 1:0}]} source={passwordNew===passwordConfirm ? require("../../../assets/correct.png") : require("../../../assets/error.png")} />
+      tip: <Image style={[styles.judge,{opacity: passwordConfirm ? 1:0}]} source={passwordNew===passwordConfirm ? require("../../../../assets/correct.png") : require("../../../../assets/error.png")} />
     },
   ]
 
@@ -274,6 +275,32 @@ export function ManageKeysPage({ navigation }) {
   //   changePasswordInputItems[2].conditions=(passwordConfirm===passwordNew)
   //   console.log(changePasswordInputItems[2].conditions)
   // },[passwordConfirm,passwordNew,passwordOld,selected,selected.item])
+
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      () => {
+        LayoutAnimation.easeInEaseOut();
+        setIsKeyboardOpen(true);
+      }
+    );
+
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => {
+        LayoutAnimation.easeInEaseOut(); // 添加过渡效果
+        setIsKeyboardOpen(false);
+      }
+    );
+
+    // 返回一个清理函数以在组件卸载时取消监听
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
+  }, []);
 
   return (
     <SafeAreaView style={backgroundStyle}>
@@ -284,10 +311,10 @@ export function ManageKeysPage({ navigation }) {
       />
       <View /*contentInsetAdjustmentBehavior="automatic"*/ style={backgroundStyle}>
         <ImageBackground
-          source={require('../../../assets/background.png')} // 指定背景图片的路径
+          source={require('../../../../assets/background.png')} // 指定背景图片的路径
           style={{ flex: 1, resizeMode: 'cover'}}
         >
-        <ScrollView style={styles.body}>
+        <ScrollView style={[styles.body, isKeyboardOpen?{marginBottom: 150}:{marginBottom: 180,}]}>
           {//@ts-ignore
             keySlice.map((item, index) => {
             return (
@@ -524,7 +551,7 @@ const styles = StyleSheet.create({
     height: "auto",
     marginLeft: '5%',
     marginRight: '5%',
-    marginBottom: 180,
+    // marginBottom: 180,
     flex: 1,
     backgroundColor: 'rgba(90, 90, 90, 0.50)',
     borderRadius: 22,
@@ -689,4 +716,6 @@ const styles = StyleSheet.create({
     width: 30, height: 30, margin: 15,
   }
 });
+
+
 
