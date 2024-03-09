@@ -2,12 +2,13 @@ import * as React from "react";
 import { useState, createContext, RefObject, useContext, useLayoutEffect, useEffect } from "react";
 import { RemoteConnectionPage } from "./RemoteConnection";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { NewConnectionPage } from "./NewConnection";
+import { NewHostPage } from "./NewHost";
 import { ManageKeysPage } from "./ManageKeys";
 import { SettingsPage } from "./Settings";
 import { RemoteOperationPage } from "./RemoteOperation";
 import { GenerateKeyPage } from "./GenerateKey";
 import {
+  BackHandler,
   Image,
   StyleSheet,
   Text,
@@ -17,6 +18,7 @@ import {
 
 import { AssistancePage } from "./Assistance";
 import { saveData, UserContext } from "../../../App";
+import { EditHostPage } from "./EditHost";
 
 
 
@@ -30,101 +32,32 @@ export function HomeScreen({ route,navigation }) {
 
     return navigation.addListener('beforeRemove', (e) => {
       // Prevent default behavior of going back
-      e.preventDefault();
-      //TODO:返回直接退出应用
-    });
-  }, [navigation]);
+      if(!userSlice.isLogin&&e.data.action.type==="POP_TO_TOP")return;
 
+      e.preventDefault();
+      //返回直接退出应用
+      // console.log(e)
+      // console.log(111)
+      // console.log(userSlice)//为什么未更新？？？————可能因为使用的是闭包内的useSlice
+      BackHandler.exitApp();
+      //else if(!userSlice.isLogin&&e.data.action.type==="POP_TO_TOP") navigation.navigate('LoginScreen')//navigation.goBack();
+    });
+  }, [navigation,userSlice]);
+
+  // useEffect(()=>{
+  //   console.log("HomeScreen挂载")
+  //   return ()=>{console.log("HomeScreen卸载")}
+  // },[])
 
   return <HomeStack.Navigator initialRouteName={"RemoteConnection"}>
             <HomeStack.Screen name="RemoteConnection" component={RemoteConnectionPage} />
-            <HomeStack.Screen name="NewConnection" component={NewConnectionPage} />
             <HomeStack.Screen name="RemoteOperation" component={RemoteOperationPage} />
-            <HomeStack.Screen name="ManageKeys" component={ManageKeysPage} />
-            <HomeStack.Screen name="GenerateKey" component={GenerateKeyPage} />
+            <HomeStack.Screen name="NewHost" component={NewHostPage} />
+            <HomeStack.Screen name="EditHost" component={EditHostPage} />
+            {/*<HomeStack.Screen name="ManageKeys" component={ManageKeysPage} />*/}
+            {/*<HomeStack.Screen name="GenerateKey" component={GenerateKeyPage} />*/}
             <HomeStack.Screen name="Settings" component={SettingsPage} />
             <HomeStack.Screen name="Assistance" component={AssistancePage} />
           </HomeStack.Navigator>
 }
-
-// @ts-ignore
-export const MyHeader = ({ title, leftButton, bottomButton, rightButton, style, }) => (
-  <View style={[styles.header, style]}>
-    <View style={{ flexDirection: "row", alignItems: 'center' }}>
-      <View style={styles.leftButton}>{leftButton}</View>
-      <Text style={[styles.headerTitle,rightButton?{left:50}:{textAlign: 'center'}]}>{title}</Text>
-      {rightButton && <View style={styles.rightButton}>{rightButton}</View>}
-    </View>
-    {bottomButton && <View style={styles.bottomButton}>{bottomButton}</View>}
-  </View>
-);
-
-// @ts-ignore
-export const header = ({ navigation, route, options, back }) => {
-  const title = options.headerTitle() || route.name;
-
-  return (
-    <MyHeader
-      title={title}
-      leftButton={route.name !== "RemoteConnection" ? (
-          <TouchableOpacity onPress={() => {
-            // console.log("back")
-            navigation.goBack();
-          }} >
-            <Image style={styles.icon} source={require("../../../assets/back.png")} />
-          </TouchableOpacity>
-        ) : undefined}
-      bottomButton={options.headerRight&&options.bottom?options.headerRight():null}
-      rightButton={options.headerRight&&!options.bottom?options.headerRight():null}
-      style={options.headerStyle || {backgroundColor: 'rgba(118, 118, 118, 0.50)'}}
-    />
-  );
-};
-
-const styles = StyleSheet.create({
-  header: {
-    width: '90%',
-    height: 'auto',
-    minHeight: 46,
-    margin: '5%',
-    marginBottom: 0,
-
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-
-    elevation: 1, // Android 阴影效果
-    shadowColor: 'rgba(0, 0, 0, 0.25)', // iOS 阴影颜色
-    shadowOffset: { width: 0, height: 5 }, // iOS 阴影偏移
-    shadowOpacity: 0.25, // iOS 阴影不透明度
-    //shadowRadius: 5, // iOS 阴影半径
-    borderRadius: 22,
-    backdropFilter: 'blur(4px)',
-  },
-  headerTitle: {
-    flex: 1,
-    margin: 5,
-    // fontSize: 17,
-  },
-  leftButton: {
-    position: "absolute",
-    left: 10,
-    alignSelf: 'center',
-    zIndex: 100,
-  },
-  bottomButton: {
-    width: "100%",
-    borderTopWidth: 1,
-    borderColor: 'rgba(255,255,255,0.5)',
-  },
-  rightButton: {
-    right: 20
-  },
-  icon: {
-    width: 40,
-    height: 40
-  },
-});
-
-
 

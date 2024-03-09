@@ -4,19 +4,34 @@ import {
   ImageBackground,
   SafeAreaView, ScrollView, StatusBar,
   StyleSheet, Text, TextInput, TouchableOpacity, TouchableOpacityComponent, useColorScheme,
-  View, Alert, Keyboard, LayoutAnimation
+  View, Alert, Keyboard, LayoutAnimation, BackHandler
 } from "react-native";
 import * as React from "react";
-import { useContext, useState, useEffect } from "react";
+import { useContext, useState, useEffect, useRef } from "react";
 // import { HostContext, UserContext } from "../../HomeScreen";
 import { Colors } from "react-native/Libraries/NewAppScreen";
 import { saveData, UserContext } from "../../../App";
-import { UserType } from "../../../module/types";
+import { UserType } from "../../../module/dataModule/types";
+import { login, sendCode } from "../../../module/httpModule/http";
 
 // @ts-ignore
 export function Login({ route,navigation }) {
 
   const { userSlice, setUserSlice } = useContext(UserContext);
+
+  useEffect(() => {
+
+    return navigation.addListener('beforeRemove', (e: { data: { action: { type: string; }; }; preventDefault: () => void; }) => {
+      // Prevent default behavior of going back
+      if(!userSlice.isLogin&&e.data.action.type==="POP_TO_TOP")return;
+
+      e.preventDefault();
+      //返回直接退出应用
+      // console.log(e)
+      // console.log(222)
+      BackHandler.exitApp();
+    });
+  }, [navigation]);
 
   const isDarkMode = useColorScheme() === "dark";
 
@@ -29,11 +44,12 @@ export function Login({ route,navigation }) {
 
   const [phone,onChangePhone] = useState('')
   const [captchaCode,onChangeCaptchaCode] = useState('')
-  const [username,onChangeUsername] = useState('')
+  const [nickname,onChangeNickname] = useState('')
   const [password,onChangePassword] = useState('')
 
   const [isCounting, setIsCounting] = useState(false);
   const [remainingTime, setRemainingTime] = useState(60);
+  const [correctCode,onChangeCorrectCode] = useState<string|null>(null)
 
   const [isAgree, setIsAgree] = useState(false);
 
@@ -60,13 +76,27 @@ export function Login({ route,navigation }) {
   }, [isCounting, remainingTime]);
 
 
-
+  const clear = () => {
+    onChangePhone('')
+    onChangeCaptchaCode('')
+    onChangeNickname('')
+    onChangePassword('')
+    setIsCounting(false)
+    setRemainingTime(60)
+    setIsAgree(false)
+  }
 
   const phoneNumberPattern = /^1\d{10}$/
   const sendCaptchaCode = () => {
     if(phoneNumberPattern.test(phone)){
-      // TODO: 发送验证码
-
+      // 发送验证码
+      sendCode(phone).then((res)=>{
+        const { code, time } = res as { code: string; time: number };
+        onChangeCorrectCode(code);
+        setTimeout(()=>{
+          onChangeCorrectCode('');
+        }, time);
+      }).catch()
       setIsCounting(true);
     } else {
       Alert.alert('请输入有效的手机号!');
@@ -74,42 +104,63 @@ export function Login({ route,navigation }) {
 
   }
 
+  let loginInProcess=useRef(false);
   const handleLogin = () => {
+    if(loginInProcess.current)return;
+    loginInProcess.current=true;
     // TODO: 验证登录
     if(!isAgree){
       alert("需同意用户协议！")
       return;
+    } else if(captchaCode!==correctCode/*验证码错误*/){
+      alert("验证码错误！")
     }
 
     switch (loginType) {
       case "PassWord":{
-        if(1/*密码正确*/){
-          const newUserSlice:UserType = {
-            username,
-            password,
-            phone,
-            avatar: "",
-            isLogin: true
-          };
-          setUserSlice(newUserSlice);
-          saveData('UserSlice',newUserSlice)
-          navigation.navigate('MainScreen');
-        } else alert("密码错误！")
+        login(nickname, password, undefined).then((res)=> {
+          if(res/*密码正确*/){
+            const newUserSlice:UserType = {
+              //如何完整获取用户信息？（解析jwt）
+              id:'',
+              nickname: nickname,
+              password: password,
+              phone: '',
+              avatar: { uri: '' },
+              isLogin: true,
+              enterprise: null,
+              level: 3
+            };
+            setUserSlice(newUserSlice);
+            saveData('UserSlice',newUserSlice)
+            navigation.navigate('MainScreen');
+            clear()
+          }else alert("密码错误！")
+          loginInProcess.current=false;
+        }).catch();
         break;
       }
-      case "CaptchaCode":{
-        if(1/*验证码正确*/){
-          const newUserSlice:UserType = {
-            username,
-            password,
-            phone,
-            avatar: "",
-            isLogin: true
-          };
-          setUserSlice(newUserSlice);
-          saveData('UserSlice',newUserSlice)
-          navigation.navigate('MainScreen');
-        } else alert("验证码错误！")
+      case "CaptchaCode": {
+        login(phone, undefined, captchaCode).then((res) => {
+          if (res/*验证码正确, correctCode===captchaCode*/) {
+            const newUserSlice: UserType = {
+              //TODO:解析jwt获取用户信息
+              id:'',
+              nickname:'user',
+              password:'',
+              phone:phone,
+              avatar: { uri: '' },
+              isLogin: true,
+              enterprise: null,
+              level: 3
+            };
+            setUserSlice(newUserSlice);
+            saveData('UserSlice', newUserSlice)
+            navigation.navigate('MainScreen');
+            clear()
+          } else alert("验证码错误！")
+          loginInProcess.current=false;
+        }).catch();
         break;
       }
     }
@@ -118,6 +169,7 @@ export function Login({ route,navigation }) {
 
   const toEnroll = () => {
     navigation.navigate('Enroll');
+    clear()
   }
 
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
@@ -126,16 +178,16 @@ export function Login({ route,navigation }) {
     const keyboardDidShowListener = Keyboard.addListener(
       'keyboardDidShow',
       () => {
-        LayoutAnimation.easeInEaseOut();
-        setIsKeyboardOpen(true);
+        // LayoutAnimation.easeInEaseOut();
+        // setIsKeyboardOpen(true);
       }
     );
 
     const keyboardDidHideListener = Keyboard.addListener(
       'keyboardDidHide',
       () => {
-        LayoutAnimation.easeInEaseOut(); // 添加过渡效果
-        setIsKeyboardOpen(false);
+        // LayoutAnimation.easeInEaseOut(); // 添加过渡效果
+        // setIsKeyboardOpen(false);
       }
     );
 
@@ -157,12 +209,12 @@ export function Login({ route,navigation }) {
       <View style={backgroundStyle}>
         <ImageBackground
           source={require('../../../assets/background_login.png')} // 指定背景图片的路径
-          style={{ flex: 1, resizeMode: 'cover'}}
+          style={{ flex: 1/*, resizeMode: 'cover'*/}}
         >
           <View style={styles.body}>
 
             <Image source={require('../../../assets/logo_transparent.png')}
-                   style={{width: 400, height:100, alignSelf: 'center', marginVertical: 20, opacity: 0.6}}/>
+                   style={{width: 400, height:100, alignSelf: 'center', marginVertical: 20, opacity: 0.2}}/>
 
             <View>
               <View style={{flexDirection: 'row',justifyContent:'space-evenly'}}>
@@ -240,7 +292,7 @@ export function Login({ route,navigation }) {
                 <Text style={{color: '#BCB7B1', fontSize: 17, fontFamily: 'Source Han Sans CN', fontWeight: '400', }}>我已阅读并同意《xxx用户协议》</Text></View>
             </View>
 
-            <View style={[{bottom: 50},isKeyboardOpen?{display: 'none'}:{}]}>
+            <View style={[{bottom: 50},/*isKeyboardOpen?{display: 'none'}:{}*/]}>
               <TouchableOpacity
                 activeOpacity={0.5}
                 onPress={handleLogin}
@@ -285,10 +337,12 @@ const styles = StyleSheet.create({
     // width: '60%',
     width: 0,
     flexGrow: 1,
+    paddingHorizontal: 15,
+    paddingVertical: 5,
     height: 35,
+    lineHeight: 25,
     backgroundColor: 'rgba(0,0,0,0.3)',
     borderRadius: 20,
-    paddingLeft: 15,
     alignItems: 'center',
     overflow: 'hidden',
     textAlignVertical: 'top'

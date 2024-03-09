@@ -1,29 +1,54 @@
-import { Modal, NativeSyntheticEvent, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  View, Text, TouchableOpacity, TouchableWithoutFeedback,
+  GestureResponderEvent, Modal, StyleSheet,
+} from "react-native";
 import * as React from "react";
 
-const SuperModal = ({ isModalVisible, closeModal, handleConfirm, text, Content, confirmText }:{ isModalVisible:boolean, closeModal:() => void, handleConfirm:() => boolean, text:string, Content:any, confirmText:string }) => {
-
+const SuperModal = ({ isModalVisible, closeModal, handleConfirm=null, title, content, confirmText="确认", customButton = null, current= 0, next=null, }:
+{ isModalVisible:boolean, closeModal:() => void, handleConfirm:(() => boolean|Promise<boolean>)|null, title:string, content:any, confirmText?:string, customButton?: {textLeft:string,textRight:string,onPressLeft:(event: GestureResponderEvent) => void,onPressRight:(event: GestureResponderEvent) => void } | null | undefined, current?: number, next?:any, }) => {
 
   return <Modal
     transparent={true}
     visible={isModalVisible}
     onRequestClose={closeModal}
   >
-    <View style={styles.overlay_popModal}>
-      <View style={styles.popModal}>
-        <Text style={styles.modalTitle}>{text}</Text>
-        {Content}
-        <View style={styles.buttonsContainer}>
-          <TouchableOpacity onPress={closeModal} style={[styles.menuButton,{borderRightWidth: 0.5}]}>
-            <Text style={{textAlign: 'center'}}>取消</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={()=>{handleConfirm() && closeModal()}} style={[styles.menuButton,{borderLeftWidth: 0.5}]}>
-            <Text style={{textAlign: 'center'}}>{confirmText}</Text>
-          </TouchableOpacity>
-        </View>
-
-      </View>
-    </View>
+    <TouchableWithoutFeedback onPress={closeModal}><View style={styles.overlay_popModal} >
+      <TouchableWithoutFeedback onPress={()=>{}}><View style={styles.popModal}>
+        { current===0?
+          <>
+              <Text style={styles.modalTitle}>{title}</Text>
+              {content}
+              <View style={styles.buttonsContainer}>
+                {customButton ?
+                  <>
+                    <TouchableOpacity onPress={customButton.onPressLeft}
+                                      style={[styles.menuButton, { borderRightWidth: 0.5 }]}>
+                      <Text style={{ textAlign: "center" }}>{customButton.textLeft}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={customButton.onPressRight}
+                                      style={[styles.menuButton, { borderLeftWidth: 0.5 }]}>
+                      <Text style={{ textAlign: "center" }}>{customButton.textRight}</Text>
+                    </TouchableOpacity>
+                  </>
+                  :
+                  <>
+                    <TouchableOpacity onPress={closeModal} style={[styles.menuButton, { borderRightWidth: 0.5 }]}>
+                      <Text style={{ textAlign: "center" }}>取消</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={async () => {
+                      handleConfirm ? (await handleConfirm()) && closeModal() : closeModal()
+                    }} style={[styles.menuButton, { borderLeftWidth: 0.5 }]}>
+                      <Text style={{ textAlign: "center" }}>{confirmText}</Text>
+                    </TouchableOpacity>
+                  </>
+                }
+              </View>
+            </>
+          :
+          <>{next[current-1]}</>
+        }
+        </View></TouchableWithoutFeedback>
+    </View></TouchableWithoutFeedback>
   </Modal>
 }
 

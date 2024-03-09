@@ -16,11 +16,13 @@ import * as React from "react";
 import { useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Colors } from "react-native/Libraries/NewAppScreen";
 import FloatingButton from "../../../Components/FloatingButton";
-import { header } from "../index";
+import { header } from "../../../Components/Header";
 import SuperModal from "../../../Components/SuperModal";
 import Clipboard from '@react-native-clipboard/clipboard';
 import { HostContext, saveData } from "../../../../App";
-// import Voice from '@react-native-community/voice';
+import { SuperInput } from "../../../Components/SuperInput";
+import { connectInit } from "../../../../module/httpModule/http";
+import { Terminal } from "xterm";
 
 
 // @ts-ignore
@@ -63,7 +65,9 @@ export function RemoteOperationPage({ route, navigation }) {
     updatedHostList[index].texts = [];
     updatedHostList[index].connecting = false;
     setHostSlice(updatedHostList);
-    saveData('HostSlice',updatedHostList)
+    // saveData('HostSlice',updatedHostList)
+
+    ws.current?.close()
 
     navigation.goBack();
   };
@@ -74,7 +78,7 @@ export function RemoteOperationPage({ route, navigation }) {
     setIsSizeModalVisible(true)
   };
 
-  const headerTitle = () => <Text style={styles.sectionTitle}>{item.name.username + "@" + item.name.host}</Text>;
+  const headerTitle = () => <Text style={[styles.sectionTitle]}>{item.username + "@" + item.host}</Text>;
   const headerRight = () => (
     <View style={styles.setContainer}>
       <TouchableOpacity activeOpacity={0.5} onPress={toggleMenu}>
@@ -106,75 +110,37 @@ export function RemoteOperationPage({ route, navigation }) {
     navigation.setOptions({ header, headerTitle, headerRight, headerTransparent:true, bottom:false, headerStyle: {backgroundColor: 'rgba(0, 0, 0, 0.40)'} });
   }, [isMenuVisible]);
 
-  // const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
-  // const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const [isAIOpen, setIsAIOpen] = useState(false);
-  const [isVoiceBoardOpen, setIsVoiceBoardOpen] = useState(false);
-  const [isVoiceInput, setIsVoiceInput] = useState(false);
+  // const [isVoiceBoardOpen, setIsVoiceBoardOpen] = useState(false);
+  // const [isVoiceInput, setIsVoiceInput] = useState(false);
 
   const [isSizeModalVisible,setIsSizeModalVisible] = useState(false)
 
   const directInputRef = useRef(null);
   const aiInputRef = useRef(null);
   const [inputDirect, onChangeInputDirect] = useState('')
-  const [inputAI, onChangeInputAI] = useState('')
+  // const [inputAI, onChangeInputAI] = useState('')
 
   const [scrollHeight,setScrollHeight] = useState<number|null>(null)
-  const [renew,setRenew]=useState(false)
+  // const [renew,setRenew]=useState(false)
   const [editable,setEditable]=useState(true)
 
   const [texts, setTexts] = useState<string[]>(item.texts)
-    // [
-    // "Last failed login: Tue Jul 25 14:11:59 CST 2023 from 82.207.9.226 on ssh;notty\n" +
-    // "There were 1268 failed login attempts since the last successful login.\n" +
-    // "Last login: Mon Jul 24 18:54:40 2023 from 112.96.196.30root@VM-0-16-centos ~]#",
-    // "Last failed login: Tue Jul 25 14:11:59 CST 2023 from 82.207.9.226 on ssh;notty\n" +
-    // "There were 1268 failed login attempts since the last successful login.\n" +
-    // "Last login: Mon Jul 24 18:54:40 2023 from 112.96.196.30root@VM-0-16-centos ~]#",
-    // "Last failed login: Tue Jul 25 14:11:59 CST 2023 from 82.207.9.226 on ssh;notty\n" +
-    // "There were 1268 failed login attempts since the last successful login.\n" +
-    // "Last login: Mon Jul 24 18:54:40 2023 from 112.96.196.30root@VM-0-16-centos ~]#",
-    // "Last failed login: Tue Jul 25 14:11:59 CST 2023 from 82.207.9.226 on ssh;notty\n" +
-    // "There were 1268 failed login attempts since the last successful login.\n" +
-    // "Last login: Mon Jul 24 18:54:40 2023 from 112.96.196.30root@VM-0-16-centos ~]#",
-    // "Last failed login: Tue Jul 25 14:11:59 CST 2023 from 82.207.9.226 on ssh;notty\n" +
-    // "There were 1268 failed login attempts since the last successful login.\n" +
-    // "Last login: Mon Jul 24 18:54:40 2023 from 112.96.196.30root@VM-0-16-centos ~]#",
-    // "Last failed login: Tue Jul 25 14:11:59 CST 2023 from 82.207.9.226 on ssh;notty\n" +
-    // "There were 1268 failed login attempts since the last successful login.\n" +
-    // "Last login: Mon Jul 24 18:54:40 2023 from 112.96.196.30root@VM-0-16-centos ~]#",
-    // "Last failed login: Tue Jul 25 14:11:59 CST 2023 from 82.207.9.226 on ssh;notty\n" +
-    // "There were 1268 failed login attempts since the last successful login.\n" +
-    // "Last login: Mon Jul 24 18:54:40 2023 from 112.96.196.30root@VM-0-16-centos ~]#",
-    // "Last failed login: Tue Jul 25 14:11:59 CST 2023 from 82.207.9.226 on ssh;notty\n" +
-    // "There were 1268 failed login attempts since the last successful login.\n" +
-    // "Last login: Mon Jul 24 18:54:40 2023 from 112.96.196.30root@VM-0-16-centos ~]#",
-    // "Last failed login: Tue Jul 25 14:11:59 CST 2023 from 82.207.9.226 on ssh;notty\n" +
-    // "There were 1268 failed login attempts since the last successful login.\n" +
-    // "Last login: Mon Jul 24 18:54:40 2023 from 112.96.196.30root@VM-0-16-centos ~]#",
-    // ]
 
-  // @ts-ignore
-  // function TerminalInput(){
-  //
-  //   return <TextInput ref={directInputRef} style={[styles.text, {  padding:0, margin: 0, }]}
-  //                     value={renew?"=>":"=>"+inputDirect}
-  //                     onChangeText={(text)=> {
-  //                       if(renew){
-  //                         setRenew(false)
-  //                       } else if(editable){
-  //                         onChangeInputDirect(text.slice(2));
-  //                       }
-  //                     }}
-  //                     onSelectionChange={handleSelectionChange}
-  //                     onKeyPress={handleDirectSend}
-  //                     multiline={true}/>
-  // }
+  // const [isWaitingPassword, setIsWaitingPassword] = useState(false)
+  const [sshSessionID, setSSHSesionID] = useState('')
 
+  const ws= useRef<WebSocket>()
 
+  useLayoutEffect(()=>{
+    if(!item.connecting){
+      setTexts(['请输入密码：'])
+      setSSHSesionID('')
+      // setIsWaitingPassword(true)
+    }
+  },[item.connecting])
 
   useEffect(() => {
-    let textInputRef = isAIOpen ? aiInputRef : directInputRef;
 
     //监听键盘弹出
     const keyboardDidShowListener = Keyboard.addListener(
@@ -213,7 +179,7 @@ export function RemoteOperationPage({ route, navigation }) {
   };
   const handleOpenAI = () => {
     setIsAIOpen(!isAIOpen);
-    onChangeInputAI('')
+    // onChangeInputAI('')
   };
 
   useEffect(()=>{
@@ -222,41 +188,34 @@ export function RemoteOperationPage({ route, navigation }) {
     }
   },[isAIOpen])
 
-  const handleToVoice = () => {
-    setIsVoiceBoardOpen(!isVoiceBoardOpen);
-  };
-
-  const handleVoiceInput = () => {
-    setIsVoiceInput(true);
-    //TODO: 接收语音输入
-    // Voice.start('en-CN')
-  };
-
-  const handleVoiceCancel = () => {
-    setIsVoiceInput(false);
-    // Voice.stop()
-  };
-
-  const handleVoiceOK = () => {
-    setIsVoiceInput(false);
-    //TODO: 处理语音输入
-    // Voice.stop()
-  };
-
-  const handleAISend = () => {
+  const handleAISend = (inputAI:string) => {
     // setTexts([...texts,inputAI])
     onChangeInputDirect(inputDirect+inputAI)
-    onChangeInputAI('')
+    // onChangeInputAI('')
   };
 
-  const [terminalState, setTerminalState] = useState<'Waiting'|'Inputting'|'Sending'|'Outputting'>('Waiting')
+  const [terminalState, setTerminalState] = useState<'Waiting'|'Inputting'|'Sending'>('Waiting')
+
+  const openWS = (ssh) => {
+    ws.current=new WebSocket('/api/terminal/sshConnect');
+    ws.current.onopen = () => {
+      ws.current?.send(ssh);
+    };
+    ws.current.onmessage = (event) => {
+      if(terminalState==='Sending') {
+        setTexts([...texts,'event.data'])
+        onChangeInputDirect('')
+        setTerminalState('Waiting')
+      }
+    };
+  }
 
   const handleDirectSend = (e) => {
     // 对于安卓，回车键的键码通常是 13
-    if ( e.nativeEvent.key === 'Enter') {
+    if ( e.nativeEvent.key === 'Enter' && terminalState!=='Sending') {
+
       setTerminalState('Sending')
       setTexts([...texts,inputDirect])
-      onChangeInputDirect('')
 
       // setRenew(true)
     }
@@ -265,29 +224,41 @@ export function RemoteOperationPage({ route, navigation }) {
   useEffect(()=>{
     switch(terminalState){
       case "Inputting": {
+        console.log("输入中")
         break;
       }
       case "Sending": {
         //TODO: 请求inputDirect的返回结果
-        setTerminalState('Outputting')
-        setTexts([...texts,'result'])
-        break;
-      }
-      case "Outputting": {
-        //TODO:记录回复的时间戳
-        const updatedHostList = hostSlice;
-        updatedHostList[index].time = Date.now()
-        setHostSlice(updatedHostList);
-        saveData('HostSlice',updatedHostList)
-        setTerminalState('Waiting')
+        // setTerminalState('Outputting')
+        // setTexts([...texts,'result'])
+        if(!sshSessionID){
+          connectInit(item.host, item.username, inputDirect)
+            .then((res)=>{
+              openWS(res)
+              setSSHSesionID(res)
+              //TODO：将isConnecting改为true
+              onChangeInputDirect('')
+              setTexts([...texts,'连接成功！'])
+              setTerminalState('Waiting')
+            })
+            .catch(()=>{
+              setTexts([...texts,'密码错误！请重新输入：'])
+              onChangeInputDirect('')
+              setTerminalState('Waiting')
+            })
+        } else {
+          ws.current?.send(inputDirect)
+        }
+        console.log("发送中")
         break;
       }
       case "Waiting": {
+        console.log("等待中")
         break;
       }
     }
 
-  },[texts,terminalState])
+  },[terminalState])
 
   const handleSelectionChange = (event) => {
     const { start, end }:{ start: number, end: number } = event.nativeEvent.selection;
@@ -306,22 +277,8 @@ export function RemoteOperationPage({ route, navigation }) {
     const updatedHostList = hostSlice;
     updatedHostList[index].texts = texts
     setHostSlice(updatedHostList);
-    saveData('HostSlice',updatedHostList)
+    // saveData('HostSlice',updatedHostList)
   },[texts])
-
-
-  // useEffect(()=>{
-  //   if(renew){
-  //     setTimeout(()=>{
-  //       setRenew(false)
-  //     },1000)
-  //   }
-  // },[renew])
-
-
-    // const [selection, setSelection] = useState<{ start: number, end: number }>({ start: 0, end: 0 });
-
-
 
   return (
     <SafeAreaView style={backgroundStyle}>
@@ -334,13 +291,14 @@ export function RemoteOperationPage({ route, navigation }) {
       <View style={{ height: "100%", backgroundColor:"black" }}>
         <ImageBackground
           source={require('../../../../assets/background_dark.png')} // 指定背景图片的路径
-          style={{ flex: 1, resizeMode: 'cover'}}
+          style={{ flex: 1 }}
         >
         <ScrollView style={styles.body}
                     onLayout={(event) => {
                       let {x, y, width, height} = event.nativeEvent.layout;
                       setScrollHeight(height);
                     }}
+                    showsVerticalScrollIndicator={false}
         >
 
           {
@@ -348,9 +306,6 @@ export function RemoteOperationPage({ route, navigation }) {
               <Text style={styles.text} key={index}>{"=>"+item}</Text>
             )
           }
-          {/*<View style={{flexDirection: 'row', alignItems: 'flex-start'}}>*/}
-          {/*<Text style={styles.text}>{"=>"}</Text>*/}
-          {/*<TerminalInput />*/}
 
           {(terminalState==='Waiting'||terminalState==='Inputting') && <TextInput ref={directInputRef} style={[styles.text, {  padding:0, margin: 0, }]}
                        value={/*renew?"=>":*/"=>"+inputDirect}
@@ -364,9 +319,6 @@ export function RemoteOperationPage({ route, navigation }) {
                        multiline={true}/>
           }
 
-
-          {/*</View>*/}
-
           <View style={{height: 200}}></View>
 
 
@@ -374,51 +326,10 @@ export function RemoteOperationPage({ route, navigation }) {
         </ScrollView>
         <FloatingButton handlePress={handleOpenAI} size={50} bottom={scrollHeight} top={80}/>
 
-          {isAIOpen && (isVoiceBoardOpen ?
-              (isVoiceInput ?
-                <View style={[styles.voiceInputContainer,]}>
-                      <TouchableOpacity onPress={handleVoiceCancel} ><Image source={require("../../../../assets/cancel_voice.png")} style={styles.icon}/></TouchableOpacity>
-                      <Image source={require("../../../../assets/voicing.png")} style={styles.icon_large} />
-                      <TouchableOpacity onPress={handleVoiceOK} ><Image source={require("../../../../assets/ok_voice.png")} style={styles.icon}/></TouchableOpacity>
-                </View>
-                :
-                  <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: 'center', height: 40, flexGrow: 0, width: '80%', alignSelf: 'center', /*marginBottom: 15, */position: 'absolute', bottom: 70}}>
-                    <View style={styles.inputContainer}>
-                      <TouchableOpacity onPress={handleToVoice}>
-                        <Image source={require("../../../../assets/keyboard.png")} style={{ width: 20, height: 20 }} />
-                      </TouchableOpacity>
-                      <TouchableOpacity style={styles.input_new} onLongPress={handleVoiceInput} >
-                        <Text style={{ lineHeight: 36, left: 8, }}>{"长按输入语音"}</Text>
-                      </TouchableOpacity>
-                    </View>
-                    <TouchableOpacity onPress={handleAISend} style={[styles.sendButton]}>
-                      <Text style={{color: 'white', fontSize: 15, fontFamily: 'Source Han Sans CN', fontWeight: '700',}}>发送</Text>
-                    </TouchableOpacity>
-                  </View>)
-              :
-              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: 'center', height: 40, flexGrow: 0, width: '80%', alignSelf: 'center', /*marginBottom: 15, */position: 'absolute', bottom: 70}}>
-                <View style={styles.inputContainer}>
-                  <TouchableOpacity onPress={handleToVoice}>
-                    <Image source={require("../../../../assets/voice.png")} style={{ width: 20, height: 20 }} />
-                  </TouchableOpacity>
-                  <TextInput
-                    style={styles.input_new}
-                    ref={aiInputRef}
-                    onChangeText={onChangeInputAI}
-                    value={inputAI}
-                    //onSubmitEditing={handleAISend}
-                    placeholder={"请输入内容..."}
-                  />
-                </View>
-                <TouchableOpacity onPress={handleAISend} style={[styles.sendButton]}>
-                  <Text style={{color: 'white', fontSize: 15, fontFamily: 'Source Han Sans CN', fontWeight: '700',}}>发送</Text>
-                </TouchableOpacity>
-              </View>
-          )}
-
+        {isAIOpen && <SuperInput width={'80%'} bottom={70} handleSend={handleAISend} buttonColor={'rgba(255, 199.77, 138.76, 0.80)'} inputRef={aiInputRef}/>}
 
           <View style={styles.bottom}>
-            <ScrollView horizontal
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}
                         contentContainerStyle={{ flexGrow: 1, justifyContent: "flex-end",}}>
               {/* Virtual keys (Ctrl, ESC, arrows, etc.) */}
               <TouchableOpacity style={styles.keyButton}><Text style={styles.keyText}>Ctrl</Text></TouchableOpacity>
@@ -448,12 +359,11 @@ export function RemoteOperationPage({ route, navigation }) {
             <SuperModal isModalVisible={isSizeModalVisible}
                         closeModal={() => {setIsSizeModalVisible(false);}}
                         handleConfirm={() => {
-                          //setIsSizeModalVisible(false);
                           //TODO: 指定终端界面大小?
                           return true
                         }}
-                        text={'长宽比'}
-                        Content={<View style={{flexDirection: 'row',width: '90%', marginBottom: 10, alignItems: 'center', justifyContent: 'space-between'}}>
+                        title={'长宽比'}
+                        content={<View style={{flexDirection: 'row',width: '90%', marginBottom: 10, alignItems: 'center', justifyContent: 'space-between'}}>
                             <TextInput style={styles.input_size}/>
                             <Text>×</Text>
                             <TextInput style={styles.input_size}/>
@@ -462,13 +372,11 @@ export function RemoteOperationPage({ route, navigation }) {
             />
 
           </View>
-          </ImageBackground>
-        </View>
+        </ImageBackground>
+      </View>
     </SafeAreaView>
   );
 }
-
-const screenHeight = Dimensions.get("window").height;
 
 const styles = StyleSheet.create({
   sectionTitle: {
@@ -476,7 +384,6 @@ const styles = StyleSheet.create({
     fontSize: 25,
     fontFamily: 'Source Han Sans CN',
     fontWeight: '500',
-
   },
   body: {
     //backgroundColor: "black",
@@ -576,57 +483,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     lineHeight: 35,
   },
-  sendButton: {
-    fontSize: 16,
-    borderRadius: 20,
-    margin: 5,
-    paddingLeft: 10,
-    paddingRight: 10,
-
-    backgroundColor: 'rgba(255, 199.77, 138.76, 0.80)',
-    height: '100%',
-    width: "auto",
-    lineHeight: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-
-  },
-  input: {
-    borderRadius: 20,
-    flexGrow: 1,
-    marginTop: 2,
-    marginBottom: 2,
-    marginLeft: 20,
-    marginRight: 20,
-    paddingTop: 1,
-    paddingBottom: 1,
-    paddingLeft: 10,
-    paddingRight: 10,
-    // borderColor: "grey",
-    // borderWidth: 0.5,
-    lineHeight: 30
-  },
-  input_new: {
-    flexGrow: 1,
-    overflow: 'hidden',
-  },
-  voiceInputContainer: {
-    alignItems: "center",
-    // borderTopLeftRadius: 100,
-    // borderTopRightRadius: 100,
-    borderRadius: 100,
-    marginHorizontal: '5%',
-    marginBottom: 10,
-    paddingHorizontal: 30,
-    paddingVertical: 40,
-    backgroundColor: "rgba(160,160,160,0.8)",
-
-    position: 'absolute',
-    width: '90%',
-    bottom: 60,
-    flexDirection: "row",
-    justifyContent: "space-between"
-  },
 
   outputContainer: {
     flex: 1,
@@ -634,24 +490,6 @@ const styles = StyleSheet.create({
     borderColor: 'gray',
     marginBottom: 16,
     padding: 8,
-  },
-  // inputContainer: {
-  //   flexDirection: 'row',
-  //   alignItems: 'center',
-  // },
-  inputContainer: {
-    height: 40,
-    lineHeight: 20,
-
-    paddingLeft: 15,
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '85%',
-    //backgroundColor: '#F7F6F6',
-    borderRadius: 20,
-    overflow: 'hidden',
-
-    backgroundColor: 'white',
   },
   commandInput: {
     flex: 1,
@@ -671,4 +509,7 @@ const styles = StyleSheet.create({
   }
 
 });
+
+
+
 

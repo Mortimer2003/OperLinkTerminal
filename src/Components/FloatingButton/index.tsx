@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet, PanResponder, Dimensions, LayoutAnimation } from "react-native";
+import { View, StyleSheet, PanResponder, Dimensions } from "react-native";
 
 const FloatingButton = ({handlePress,size=50,top,bottom}:{handlePress:Function,size:number,top:number,bottom:number|null}) => {
   const [position, setPosition] = useState({ x: -size/2, y: 500 });
@@ -33,7 +33,7 @@ const FloatingButton = ({handlePress,size=50,top,bottom}:{handlePress:Function,s
       const pressEndTime = Date.now();
       const pressDuration = pressEndTime - pressStartTime;
 
-      if (pressDuration < 200) {
+      if (pressDuration < 250) {
         handlePress();
       }
 

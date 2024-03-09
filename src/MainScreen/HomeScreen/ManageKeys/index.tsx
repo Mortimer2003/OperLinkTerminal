@@ -20,9 +20,10 @@ import { Colors } from "react-native/Libraries/NewAppScreen";
 import DocumentPicker from "react-native-document-picker";
 import Clipboard from "@react-native-clipboard/clipboard";
 
-import { header } from "../index";
+import { header } from "../../../Components/Header";
 import { KeyContext, saveData } from "../../../../App";
 import SuperModal from "../../../Components/SuperModal";
+import { defaultKeySlice } from "../../../../module/dataModule/dataSlice";
 
 const screenHeight = Dimensions.get("window").height;
 
@@ -30,7 +31,8 @@ const screenHeight = Dimensions.get("window").height;
 export function ManageKeysPage({ navigation }) {
 
   // @ts-ignore
-  const { keySlice, setKeySlice } = useContext(KeyContext);
+  //const { keySlice, setKeySlice } = useContext(KeyContext);
+  const keySlice=defaultKeySlice
 
   const isDarkMode = useColorScheme() === "dark";
 
@@ -314,7 +316,7 @@ export function ManageKeysPage({ navigation }) {
           source={require('../../../../assets/background.png')} // 指定背景图片的路径
           style={{ flex: 1, resizeMode: 'cover'}}
         >
-        <ScrollView style={[styles.body, isKeyboardOpen?{marginBottom: 150}:{marginBottom: 180,}]}>
+        <ScrollView style={[styles.body, isKeyboardOpen?{marginBottom: 150}:{marginBottom: 180,}]} showsVerticalScrollIndicator={false}>
           {//@ts-ignore
             keySlice.map((item, index) => {
             return (
@@ -421,8 +423,8 @@ export function ManageKeysPage({ navigation }) {
                             return false
                           }
                       }}
-                      text={unlocktext}
-                      Content={
+                      title={unlocktext}
+                      content={
                         <View style={{flexDirection:'row', alignItems: 'center',marginBottom: 20,}} >
                           <View style={styles.inputContainer}>
                             <Text>{"密码"}：</Text>
@@ -501,8 +503,8 @@ export function ManageKeysPage({ navigation }) {
                         return true;
 
                       }}
-                      text={changePasswordtext}
-                      Content={<>
+                      title={changePasswordtext}
+                      content={<>
                         {changePasswordInputItems.map((item,index)=>{
                             if(!selected.item.password&&item.title==="旧密码")return null;
 

@@ -17,19 +17,21 @@ export function MainScreen(): JSX.Element {
   };
 
   function getStackNavigationName(route: Partial<Route<string, object | undefined>>) {
-    const routeName = getFocusedRouteNameFromRoute(route) ?? 'RemoteConnection';
+    const routeName = getFocusedRouteNameFromRoute(route) ?? 'Main';
 
     switch (routeName) {
       case 'RemoteConnection':
+        return true;
+      case 'MyHome':
+        return true;
+      case 'Main':
         return true;
       default: return false;
     }
   }
 
   // @ts-ignore
-  // @ts-ignore
   return (
-    // <NavigationContainer>
     <Tab.Navigator tabBar={props => <CustomTabBar {...props} />}
                    screenOptions={{ headerShown: false,}}>
       <Tab.Screen name="远程连接" component={HomeScreen} options={
@@ -37,14 +39,15 @@ export function MainScreen(): JSX.Element {
           tabBarVisible: getStackNavigationName(route),
           tabBarLabelStyle: styles.tabBarLabel,
         })
-      } /*initialParams={{
-          isTabBarVisible,
-          setIsTabBarVisible
-        }}*//>
+      }/>
       <Tab.Screen name="智能交互" component={AIScreen} options={{ tabBarLabelStyle: styles.tabBarLabel }}/>
-      <Tab.Screen name="我的" component={UserScreen} options={{ tabBarLabelStyle: styles.tabBarLabel }}/>
+      <Tab.Screen name="我的" component={UserScreen} options={
+        ({ route }) => ({
+          tabBarVisible: getStackNavigationName(route),
+          tabBarLabelStyle: styles.tabBarLabel,
+        })
+      }/>
     </Tab.Navigator>
-    // </NavigationContainer>
 
   );
 }

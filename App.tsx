@@ -13,24 +13,15 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createContext, useContext, useEffect, useLayoutEffect, useState } from "react";
 import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
 import { LoginScreen } from "./src/LoginScreen";
-import { defaultHostSlice, defaultKeySlice, defaultSettingSlice, defaultUserSlice } from "./module/dataSlice";
-import storage from "./module/storage";
-import { HostType, KeyType, SettingType, UserType } from "./module/types";
+import { defaultHostSlice, defaultKeySlice, defaultSettingSlice, defaultUserSlice } from "./module/dataModule/dataSlice";
+import storage from "./module/dataModule/storage";
+import { HostType, KeyType, SettingType, UserType } from "./module/dataModule/types";
 import { MainScreen } from "./src/MainScreen";
 
-const contexts={
-  KeySlice: defaultKeySlice,
-  HostSlice: defaultHostSlice,
-  SettingSlice: defaultSettingSlice,
-  UserSlice: defaultUserSlice,
+if (process.env.NODE_ENV === 'development') {
+  // Mock.start(); // 在开发环境中启用Mock.js
+  import('./module/httpModule/mock').then(()=>{console.log("Mock已启动")})
 }
-
-
-//考虑到可修改性，直接传引用值而非拷贝值
-export const KeyContext = createContext({/*defaultKeySlice*/ });
-export const HostContext = createContext({/*defaultHostSlice*/ });
-export const SettingContext = createContext({/*defaultSettingSlice*/ });
-export const UserContext = createContext({/*defaultUserSlice*/ });
 
 export function loadData(key:string,setData:Function,callback:Function=()=>{}) {
   storage.load({
@@ -53,7 +44,7 @@ export function loadData(key:string,setData:Function,callback:Function=()=>{}) {
     });
 }
 
-export function saveData(key:string,newData:KeyType|SettingType|HostType|UserType|Array<any>) {
+export function saveData(key:string,newData:any) {
   storage.save({
     key: key,
     data: newData,
@@ -66,9 +57,55 @@ export function saveData(key:string,newData:KeyType|SettingType|HostType|UserTyp
     });
 }
 
+const contexts={
+  KeySlice: defaultKeySlice,
+  HostSlice: defaultHostSlice,
+  SettingSlice: defaultSettingSlice,
+  UserSlice: defaultUserSlice,
+}
+
+
+//考虑到可修改性，直接传引用值而非拷贝值
+export const KeyContext = createContext<{keySlice: KeyType[], setKeySlice: React.Dispatch<React.SetStateAction<KeyType[]>>}>({
+  keySlice: [], setKeySlice(value: ((prevState: KeyType[]) => KeyType[]) | KeyType[]): void {
+  }/*defaultKeySlice*/ });
+export const HostContext = createContext<{hostSlice: HostType[], setHostSlice: React.Dispatch<React.SetStateAction<HostType[]>>}>({
+  hostSlice: [], setHostSlice(value: ((prevState: HostType[]) => HostType[]) | HostType[]): void {
+  }/*defaultHostSlice*/ });
+export const SettingContext = createContext<{settingSlice: SettingType, setSettingSlice: React.Dispatch<React.SetStateAction<SettingType>>}>({
+  setSettingSlice(value: ((prevState: SettingType) => SettingType) | SettingType): void {
+  }, settingSlice: defaultSettingSlice });
+export const UserContext = createContext<{userSlice: UserType, setUserSlice: React.Dispatch<React.SetStateAction<UserType>>}>({
+  setUserSlice(value: ((prevState: UserType) => UserType) | UserType): void {
+  }, userSlice: defaultUserSlice });
+
+// export function useKey() {
+//   return useContext(KeyContext);
+// }
+// export function useSetKey() {
+//   return useContext(KeyContext);
+// }
+// export function useHost() {
+//   return useContext(HostContext);
+// }
+// export function useSetHost() {
+//   return useContext(HostContext);
+// }
+// export function useSetting() {
+//   return useContext(SettingContext);
+// }
+// export function useSetSetting() {
+//   return useContext(SettingContext);
+// }
+// export function useUser() {
+//   return useContext(UserContext);
+// }
+// export function useSetUser() {
+//   return useContext(UserContext);
+// }
+
 
 const Main = createNativeStackNavigator();
-
 
 function App() {
   //考虑到可修改性，直接传引用值而非拷贝值
@@ -84,7 +121,7 @@ function App() {
     // 在组件挂载时从 AsyncStorage 获取数据
     // loadData('UserSlice',setUserSlice) //改为在SplashScreen中获取
     loadData('KeySlice',setKeySlice)
-    loadData('HostSlice',setHostSlice)
+    // loadData('HostSlice',setHostSlice)
     loadData('SettingSlice',setSettingSlice)
     // setLoadingCompleted(true)
   }, []);

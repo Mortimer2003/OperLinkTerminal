@@ -13,7 +13,7 @@ import * as React from "react";
 import { useContext, useEffect, useLayoutEffect, useState } from "react";
 import { Colors } from "react-native/Libraries/NewAppScreen";
 import { saveData, SettingContext } from "../../../../App";
-import { header } from "../index";
+import { header } from "../../../Components/Header";
 
 // @ts-ignore
 export function AssistancePage({ navigation }) {

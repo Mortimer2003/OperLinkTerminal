@@ -12,7 +12,7 @@ import {
 import * as React from "react";
 import { useContext, useEffect, useLayoutEffect, useState } from "react";
 import { Colors } from "react-native/Libraries/NewAppScreen";
-import { header } from "../index";
+import { header } from "../../../Components/Header";
 import { SettingContext, saveData } from "../../../../App";
 
 // @ts-ignore
@@ -75,7 +75,7 @@ export function SettingsPage({ navigation }) {
           source={require('../../../../assets/background.png')} // 指定背景图片的路径
           style={{ flex: 1, resizeMode: 'cover'}}
         >
-        <ScrollView style={styles.body}>
+        <ScrollView style={styles.body} showsVerticalScrollIndicator={false}>
 
           <View style={styles.column}>
             <Text style={styles.title1}>连接</Text>

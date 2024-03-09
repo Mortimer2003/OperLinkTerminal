@@ -7,12 +7,16 @@ import {
   View, Alert, Keyboard, LayoutAnimation
 } from "react-native";
 import * as React from "react";
-import {launchImageLibrary} from 'react-native-image-picker';
-import { useContext, useState, useEffect, useLayoutEffect } from "react";
+import { ImageLibraryOptions, launchImageLibrary } from "react-native-image-picker";
+import { useContext, useState, useEffect, useLayoutEffect, useRef } from "react";
 // import { HostContext, UserContext } from "../../HomeScreen";
 import { Colors } from "react-native/Libraries/NewAppScreen";
 import { saveData, UserContext } from "../../../App";
-import { UserType } from "../../../module/types";
+import { UserType } from "../../../module/dataModule/types";
+import { register, sendCode, uploadImage } from "../../../module/httpModule/http";
+import * as Assert from "assert";
+import { Asset } from "react-native-image-picker/lib/typescript/types";
+import { defaultUserSlice } from "../../../module/dataModule/dataSlice";
 
 // @ts-ignore
 export function Enroll({ route,navigation }) {
@@ -27,8 +31,9 @@ export function Enroll({ route,navigation }) {
   };
 
   const handleSkip = () => {
-    //TODO: 跳过注册
+    setUserSlice(defaultUserSlice)
     navigation.navigate('MainScreen');
+    clear()
   }
 
   // @ts-ignore
@@ -39,7 +44,7 @@ export function Enroll({ route,navigation }) {
           <TouchableOpacity onPress={() => {
           navigation.goBack();
         }} >
-          <Image style={styles.icon} source={require("../../../assets/back.png")} />
+          <Image style={styles.icon} source={require("../../../assets/back_light.png")} />
         </TouchableOpacity>
         </View>
         <Text style={[styles.headerTitle,{textAlign: 'center'}]}>注册</Text>
@@ -60,16 +65,18 @@ export function Enroll({ route,navigation }) {
 
   const [phone,onChangePhone] = useState('')
   const [captchaCode,onChangeCaptchaCode] = useState('')
-  const [username,onChangeUsername] = useState('')
+  const [nickname,onChangeNickname] = useState('')
   const [password,onChangePassword] = useState('')
   const [passwordConfirm,onChangePasswordConfirm] = useState('')
 
   const [isCounting, setIsCounting] = useState(false);
   const [remainingTime, setRemainingTime] = useState(60);
+  const [correctCode,onChangeCorrectCode] = useState<string|null>(null)
 
   const [isAgree, setIsAgree] = useState(false);
 
-  const [avatarSource, setAvatarSource] = useState(null);
+  const [avatarSource, setAvatarSource] = useState( {uri:''});
+  const [avatarImage, setAvatarImage] = useState<Asset>();
 
   const handleChooseImage = () => {
     const options = {
@@ -77,16 +84,17 @@ export function Enroll({ route,navigation }) {
     };
 
     // 打开相册
-    launchImageLibrary(options, (response) => {
+    launchImageLibrary(options as ImageLibraryOptions, (response) => {
       if (response.didCancel) {
         console.log('用户取消了选择图片');
       } else if (response.errorMessage) {
         console.log('选择图片时出现错误:', response.errorMessage);
-      } else {
+      } else if (response.assets){
         console.log(response.assets)
         // 选择图片成功，设置头像源
         // @ts-ignore
         setAvatarSource({ uri: response.assets[0].uri });
+        setAvatarImage(response.assets[0])
         //console.log(source)
         //参考 https://www.npmjs.com/package/react-native-image-picker?activeTab=readme
       }
@@ -123,41 +131,84 @@ export function Enroll({ route,navigation }) {
   const phoneNumberPattern = /^1\d{10}$/
   const sendCaptchaCode = () => {
     if(phoneNumberPattern.test(phone)){
-      // TODO: 发送验证码
-
+      // 发送验证码
+      sendCode(phone).then((res)=>{
+        const { code, time } = res as { code: string; time: number };
+        onChangeCorrectCode(code);
+        setTimeout(()=>{
+          onChangeCorrectCode('');
+        }, time);
+      }).catch()
       setIsCounting(true);
     } else {
       Alert.alert('请输入有效的手机号!');
     }
-
   }
 
-  const handleEnroll = () => {
+  let registerInProcess=useRef(false);
+
+  const handleEnroll = async () => {
+    if(registerInProcess.current)return;
+    registerInProcess.current=true
     // TODO: 验证注册
     if(!isAgree){
       alert("需同意用户协议！")
       return;
     }
-    if(!username){
+    if(!nickname){
       alert("请输入用户名！")
-    } else if(0/*验证码错误*/){
+    } else if(captchaCode!==correctCode/*验证码错误*/){
       alert("验证码错误！")
     } else if(!password){
       alert("请输入密码！")
     } else if(passwordConfirm!==password){
       alert("两次输入的密码不一致！")
-    } else {
-      const newUserSlice:UserType = {
-        username,
-        password,
-        phone,
-        avatar: "",
-        isLogin: true
-      };
-      setUserSlice(newUserSlice);
-      saveData('UserSlice',newUserSlice)
-      navigation.navigate('MainScreen');
+    } else if(!avatarImage){
+      alert("请设置头像！")
+    } else{
+
+      const response = await fetch(avatarImage.uri as string);
+      const blob = await response.blob();
+      const formData = new FormData();
+      formData.append('file', blob, avatarImage.fileName);
+      const imageUrl = await uploadImage(formData) as string
+      setAvatarSource({uri: imageUrl})
+
+
+      //发送注册请求
+      register(phone,password,captchaCode,imageUrl).then((res)=>{
+        if(res){
+          // TODO:改为解析jwt保存用户信息
+          const newUserSlice:UserType = {
+            id: '',
+            nickname,
+            password,
+            phone,
+            avatar: {uri: imageUrl}, //TODO:将图片缓存到本地，显示缓存的图片
+            isLogin: true,
+            enterprise: null,
+            level: 3
+          };
+          setUserSlice(newUserSlice);
+          saveData('UserSlice',newUserSlice)
+          navigation.navigate('MainScreen');
+          clear()
+        }
+        registerInProcess.current=false;
+      }).catch()
     }
+  }
+
+  const clear = () => {
+    onChangePhone('')
+    onChangeCaptchaCode('')
+    onChangeNickname('')
+    onChangePassword('')
+    onChangePasswordConfirm('')
+    setIsCounting(false)
+    setRemainingTime(60)
+    setIsAgree(false)
+    setAvatarSource({uri:''})
   }
 
 
@@ -167,16 +218,16 @@ export function Enroll({ route,navigation }) {
     const keyboardDidShowListener = Keyboard.addListener(
       'keyboardDidShow',
       () => {
-        LayoutAnimation.easeInEaseOut();
-        setIsKeyboardOpen(true);
+        // LayoutAnimation.easeInEaseOut();
+        // setIsKeyboardOpen(true);
       }
     );
 
     const keyboardDidHideListener = Keyboard.addListener(
       'keyboardDidHide',
       () => {
-        LayoutAnimation.easeInEaseOut(); // 添加过渡效果
-        setIsKeyboardOpen(false);
+        // LayoutAnimation.easeInEaseOut(); // 添加过渡效果
+        // setIsKeyboardOpen(false);
       }
     );
 
@@ -202,12 +253,12 @@ export function Enroll({ route,navigation }) {
           resizeMode='cover'
         >
 
-          <View style={styles.body}>
+          <ScrollView style={styles.body}>
 
-            <View>
+            <View >
               <TouchableOpacity onPress={handleChooseImage} style={{borderRadius: 100, borderWidth: 1, width: 128, height: 128, borderColor: 'white', alignSelf: 'center', margin: 50, alignItems: 'center', justifyContent: 'center', overflow: 'hidden'}}>
                 {
-                  avatarSource ?
+                  avatarSource.uri ?
                     <Image source={avatarSource} style={{width: '100%', height: '100%'}} resizeMode="cover"/>
                     :
                     <Text style={{color: 'white'}}>选择头像</Text>
@@ -217,8 +268,8 @@ export function Enroll({ route,navigation }) {
                 <Text style={styles.text2}>用户名：    </Text>
                 <TextInput
                   style={styles.input}
-                  value={username}
-                  onChangeText={onChangeUsername}
+                  value={nickname}
+                  onChangeText={onChangeNickname}
                 />
               </View>
               <View style={styles.input_container}>
@@ -237,6 +288,7 @@ export function Enroll({ route,navigation }) {
                   value={captchaCode}
                   onChangeText={onChangeCaptchaCode}
                   keyboardType="numeric"
+                  placeholder={' '}
                 />
                 <TouchableOpacity
                   activeOpacity={0.5}
@@ -263,6 +315,7 @@ export function Enroll({ route,navigation }) {
                   onChangeText={onChangePasswordConfirm}
                 />
               </View>
+
               <View style={{alignSelf:'center', margin: 5, flexDirection:'row', alignItems: 'center'}}>
                 <TouchableOpacity onPress={()=>{setIsAgree(!isAgree)}}>
                   <Image source={isAgree?require('../../../assets/radio_on.png'):require('../../../assets/radio_off.png')} style={{width:18,height:18, margin: 5}}/>
@@ -271,15 +324,14 @@ export function Enroll({ route,navigation }) {
             </View>
 
             {/*TODO: 弹出键盘时隐藏*/}
-            <View style={[{bottom: 50,},isKeyboardOpen?{display: 'none'}:{}]}>
+            <View style={[/*isKeyboardOpen?{display: 'none'}:{}*/]}>
               <TouchableOpacity
                 activeOpacity={0.5}
                 onPress={handleEnroll}
-                style={[{ alignSelf:'center',opacity: 0.80, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 22, width: '60%',  alignItems: 'center', padding: 10,margin:10}]}
+                style={[{ alignSelf:'center',opacity: 0.80, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 22, width: '60%',  alignItems: 'center', padding: 10,margin:30}]}
               ><Text style={{color: '#EBE7DB', fontSize: 21, fontFamily: 'Microsoft Tai Le', fontWeight: '400',}}>注册</Text></TouchableOpacity>
-              <TouchableOpacity style={{alignSelf:'center'}} ><Text style={{color: '#BCB7B1', fontSize: 19, fontFamily: 'Source Han Sans CN', fontWeight: '400',}}></Text></TouchableOpacity>
             </View>
-          </View>
+          </ScrollView>
 
         </ImageBackground>
       </View>
@@ -292,7 +344,7 @@ export function Enroll({ route,navigation }) {
 const styles = StyleSheet.create({
   body: {
     flex: 1,
-    justifyContent: 'space-between',
+    //justifyContent: 'space-evenly',
     marginTop: 50,
   },
   text1: {
@@ -318,10 +370,13 @@ const styles = StyleSheet.create({
     // width: '60%',
     width: 0,
     flexGrow: 1,
+    paddingHorizontal: 15,
+    paddingVertical: 5,
+    // paddingTop: 5,
     height: 35,
+    lineHeight: 25,
     backgroundColor: 'rgba(0,0,0,0.3)',
     borderRadius: 20,
-    paddingLeft: 15,
     alignItems: 'center',
     overflow: 'hidden',
     textAlignVertical: 'top'

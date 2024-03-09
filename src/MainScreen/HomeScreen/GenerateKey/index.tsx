@@ -9,7 +9,7 @@ import {
 import * as React from "react";
 import { Colors } from "react-native/Libraries/NewAppScreen";
 import { useContext, useEffect, useLayoutEffect, useState } from "react";
-import { header } from "../index";
+import { header } from "../../../Components/Header";
 import { KeyContext, saveData } from "../../../../App";
 import forge from "node-forge";
 
@@ -237,7 +237,7 @@ export function GenerateKeyPage({ navigation }) {
           source={require('../../../../assets/background.png')} // 指定背景图片的路径
           style={{ flex: 1, resizeMode: 'cover'}}
         >
-        <ScrollView style={[styles.body,isKeyboardOpen?{marginBottom: 100}:{marginBottom: 180,}]}>
+        <ScrollView style={[styles.body,isKeyboardOpen?{marginBottom: 100}:{marginBottom: 180,}]} showsVerticalScrollIndicator={false}>
           <View>
           {/*<View style={styles.container}>*/}
             {generateKeyInputItems.map((item,index)=>{

@@ -1,6 +1,6 @@
 // SplashScreen.js
 import React, { useContext, useEffect, useLayoutEffect, useState } from "react";
-import { View, Text, ActivityIndicator, StyleSheet, Image } from "react-native";
+import { View, Text, ActivityIndicator, StyleSheet, Image, BackHandler } from "react-native";
 import { getFocusedRouteNameFromRoute, useIsFocused, useNavigation } from "@react-navigation/native";
 import App, { loadData, UserContext } from "../../App";
 
@@ -21,10 +21,12 @@ const SplashScreen = ({ route, navigation }) => {
     if(loadingCompleted && isFocused){
       setTimeout(() => {
         navigation.navigate(userSlice.isLogin?'MainScreen':'LoginScreen');
-      }, 1000);
+      }, 1000); //TODO:从主页进入登录时最好能跳过加载时间
     }
+    // console.log(navigation.getState())
 
   }, [loadingCompleted,navigation,isFocused,userSlice.isLogin]);
+
 
   return (
     <View style={styles.container}>

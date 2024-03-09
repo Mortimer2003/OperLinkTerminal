@@ -32,34 +32,34 @@ export const defaultHostSlice: Array<HostType> = [
   {
     connecting: true,
     time: "1696428485712",
-
-    protocol: "ssh",
-    name: {
-      username: "user",
-      host: "127.0.0.1",
-      port: "80"
-    },
     nickname: "主机1",
     color: "black",
+
+    protocol: "ssh",
     encode: "utf-8",
     openShell: true,
+
+    username: "user",
+    host: "127.0.0.1",
+    port: "80",
+    password: "111",
 
     texts:[]
   },
   {
     connecting: false,
     time: "1696428000000",
+    nickname: "主机2",
+    color: "black",
 
     protocol: "ssh",
-    name: {
-      username: "user",
-      host: "192.0.0.1",
-      port: "80"
-    },
-    nickname: "主机1",
-    color: "black",
     encode: "utf-8",
     openShell: false,
+
+    username: "user",
+    host: "192.0.0.1",
+    port: "80",
+    password: "222",
 
     texts:[]
   },
@@ -72,9 +72,12 @@ export const defaultSettingSlice: SettingType = {
 };
 
 export const defaultUserSlice: UserType = {
-  username: '游客',
+  id: '',
+  nickname: '游客',
   password: '',
   phone: '',
-  avatar: '',
+  avatar:  {uri:''},//require('../../assets/defaultAvatar.png'),
   isLogin: false,
+  enterprise: null,
+  level: 3
 }

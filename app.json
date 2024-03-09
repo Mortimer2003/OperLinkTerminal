@@ -1,4 +1,13 @@
 {
   "name": "TerminalProject",
   "displayName": "TerminalProject",
+  "expo": {
+    "plugins": ["@react-native-voice/voice"]
+  },
+  "android": {
+    "adaptiveIcon": {
+      "foregroundImage": "./assets/adaptive-icon.png",
+      "backgroundColor": "#FFFFFF"
+    }
+  }
 }

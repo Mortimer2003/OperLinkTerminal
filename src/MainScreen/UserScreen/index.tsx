@@ -1,28 +1,18 @@
-import { useContext } from "react";
-import { defaultUserSlice } from "../../../module/dataSlice";
-import { Text, TouchableOpacity, View } from "react-native";
+import { useEffect,} from "react";
 import * as React from "react";
-import { saveData, UserContext } from "../../../App";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { MyHomePage } from "./MyHome";
+import { EnterpriseRegisterPage } from "./EnterpriseRegister";
+import { ColleagueHostPage } from "./ColleagueHost";
 
-export const UserScreen = () => {
-  const { userSlice, setUserSlice } = useContext(UserContext);
+const UserStack = createNativeStackNavigator();
+// @ts-ignore
+export const UserScreen = ({ route, navigation }) => {
 
-  const handleLogout=()=>{
-    setUserSlice(defaultUserSlice);
-    saveData('UserSlice',defaultUserSlice)
-  }
-
-  console.log(userSlice.isLogin)
-
-  return (
-    <View>
-      <Text>User</Text>
-      <View>
-        {Object.entries(userSlice).map(([key,value],index)=>
-          <Text key={index}>{key}: {value.toString()}</Text>
-        )}
-      </View>
-      <TouchableOpacity onPress={handleLogout}><Text>退出登录</Text></TouchableOpacity>
-    </View>
-  );
+  return <UserStack.Navigator initialRouteName={"RemoteConnection"}>
+    <UserStack.Screen name="MyHome" component={MyHomePage} />
+    <UserStack.Screen name="ColleagueHost" component={ColleagueHostPage} />
+    <UserStack.Screen name="EnterpriseRegister" component={EnterpriseRegisterPage} />
+  </UserStack.Navigator>
 };
+
